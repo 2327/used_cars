@@ -3,5 +3,3 @@ Flask-OpenID
 Flask-SQLAlchemy
 Jinja2
 SQLAlchemy
-distribute
-python-openid

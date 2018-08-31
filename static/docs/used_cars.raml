@@ -1,0 +1,120 @@
+#%RAML 1.0
+baseUri: http://uscar.ga/api/{version}
+version: v1
+title: Быстрая оценка подержаных автомобилей
+mediaType: [application/json]
+types:
+  car:
+    type: object
+    properties:
+      brand: string
+      model: string
+      age: number
+      mileage: number
+      price: number
+
+/evaluation:
+  displayName: Средняя цена
+  description: полученная средняя цена
+  post:
+    description: отправка данных об автомобиле
+    queryParameters:
+      brand:
+        type: string
+        description: Производитель автомобиля
+        required: true
+        example:  Volvo
+      model:
+        type: string
+        description: Марка автомобиля
+        required: true
+        example:  c40
+      age:
+        type: integer
+        description: Год выпуска автомобиля
+        required: true
+        example: 2007
+      mileage:
+        type: integer
+        description: Пробег (км)
+        required: true
+        example: 18750
+      price:
+        type: integer
+        description: Цена автомобиля (рубль)
+        required: true
+        example: 980000
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            properties:
+              price:
+                type: string
+      400:
+        description: |
+          Bad Request - Often missing a required parameter.
+        body: &errorSchemas
+          schema: |
+                {
+                    "type":"object",
+                    "$schema": "http://json-schema.org/draft-03/schema",
+                    "id": "http://jsonschema.net",
+                    "required":false,
+                    "properties":{
+                        "error": {
+                            "type":"object",
+                            "id": "http://jsonschema.net/error",
+                            "required":true,
+                            "properties":{
+                                "code": {
+                                    "type":"string",
+                                    "id": "http://jsonschema.net/error/code",
+                                    "required":false
+                                },
+                                "message": {
+                                    "type":"string",
+                                    "id": "http://jsonschema.net/error/message",
+                                    "required":true
+                                },
+                                "param": {
+                                    "type":"string",
+                                    "id": "http://jsonschema.net/error/param",
+                                    "required":false
+                                },
+                                "type": {
+                                    "type":"string",
+                                    "id": "http://jsonschema.net/error/type",
+                                    "required":true
+                                }
+                            }
+                        }
+                    }
+                }
+          example: |
+                {
+                  "error": {
+                    "type": "invalid_request_error",
+                    "message": "No such charge: ch_2Vcu103KQjX3Ey",
+                    "code": "missing",
+                    "param": "id"
+                  }
+                }
+      404:
+        description: |
+          The match cannot be found
+      500:
+        description: |
+          Server errors - something went wrong on end.
+      502:
+        description: |
+          Server errors - something went wrong on end.
+      503:
+        description: |
+          Server errors - something went wrong on end.
+      504:
+        description: |
+          Server errors - something went wrong on end.
+        
+        

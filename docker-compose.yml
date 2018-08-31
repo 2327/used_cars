@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  postgresql:
+    restart: always
+    image: postgres:10
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: us_car_ga
+      POSTGRES_USER: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql
+
+  site:
+    build: ./data/Dockerfile
+    restart: always
+    image: site:latest
+    ports:
+      - "80:5000"
+    volumes:
+      - ./data:/var/www/site
+    entrypoint: python
+    command: run.py
+    working_dir: /var/www/site
