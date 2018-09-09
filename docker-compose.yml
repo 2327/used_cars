@@ -16,10 +16,37 @@ services:
     build: ./data/Dockerfile
     restart: always
     image: site:latest
-    ports:
-      - "80:5000"
+    expose:
+      - 5000
+    labels:
+      - "traefik.backend=site"
+      - "traefik.frontend.entryPoints=https"
+      - "traefik.docker.network=traefik"
+      - "traefik.frontend.rule=Host:uscar.ga"
+      - "traefik.enable=true"
+    networks:
+      - traefik
     volumes:
       - ./data:/var/www/site
     entrypoint: python
     command: run.py
     working_dir: /var/www/site
+
+  traefik:
+    image: traefik:1.7
+    restart: always
+    ports:
+      - "194.67.205.188:80:80"
+      - "194.67.205.188:443:443"
+    networks:
+      - traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/traefik.toml:/traefik.toml
+      - ./data/acme.json:/acme.json
+    container_name: traefik
+
+networks:
+  traefik:
+    external: true
+
