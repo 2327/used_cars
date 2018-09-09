@@ -3,3 +3,4 @@ Flask-OpenID
 Flask-SQLAlchemy
 Jinja2
 SQLAlchemy
+psycopg2
