@@ -1,26 +1,28 @@
 version: '3'
 
 services:
-  postgresql:
-    restart: always
-    image: postgres:10
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: us_car_ga
-      POSTGRES_USER: postgres
-    volumes:
-      - ./data/db:/var/lib/postgresql
+#  postgresql:
+#    restart: always
+#    image: postgres:10
+#    container_name: postgresql
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_PASSWORD: us_car_ga
+#      POSTGRES_USER: postgres
+#    volumes:
+#      - ./data/db:/var/lib/postgresql
 
   site:
     build: ./data/Dockerfile
     restart: always
     image: site:latest
+    container_name: site
     expose:
       - 5000
     labels:
       - "traefik.backend=site"
-      - "traefik.frontend.entryPoints=https"
+      - "traefik.frontend.entryPoints=http,https"
       - "traefik.docker.network=traefik"
       - "traefik.frontend.rule=Host:uscar.ga"
       - "traefik.enable=true"
@@ -38,6 +40,7 @@ services:
     ports:
       - "194.67.205.188:80:80"
       - "194.67.205.188:443:443"
+    container_name: traefik
     networks:
       - traefik
     volumes:
