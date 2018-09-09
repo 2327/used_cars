@@ -1,4 +1,4 @@
-from dbtools import Base_Updater, Data_Getter
+from .dbtools import Base_Updater, Data_Getter
 
 
 item1 = {'brand': 'VW', 'model': 'Golf', 'year': '2010', 'kmage': '135480', 'price': '560000'}

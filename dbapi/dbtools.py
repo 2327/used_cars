@@ -1,6 +1,6 @@
 import psycopg2
-from dbcfg import HOST, PORT, DB_NAME, USER, PASSWORD, ADMIN, ADM_PASS, ENCODING, TABLESPACE, CONNECTION_LIMIT, connect_string
-import dblog
+from .dbcfg import HOST, PORT, DB_NAME, USER, PASSWORD, ADMIN, ADM_PASS, ENCODING, TABLESPACE, CONNECTION_LIMIT, connect_string
+from . import dblog
 
 class Base_Creator():
 
@@ -56,7 +56,7 @@ class Base_Creator():
             dblog.log('DB_ERROR')
 
     def create_sort_proc(self):
-        with open('sort_cars.txt') as file:
+        with open('dbapi/sort_cars.txt') as file:
             script = file.read()
         self.cursor.execute(script)
 
