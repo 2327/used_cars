@@ -11,16 +11,20 @@ def not_found(error):
 
 @app.route('/a')
 def a():
-    return render_template('a.tmpl')
+    return render_template('index.tmpl')
 
-@app.route('/<path:path>')
-def static_file(path):
-    return app.send_static_file(path)
 
-#@app.route('/<string:page_name>/')
-#def static_page(page_name):
-#    return render_template('%s.html' % page_name)
+@app.route("/test", methods=["POST"])
+def test():
+    return _test(request.form["test"])
+
+
+@app.route("/index")
+def index():
+    return _test("My Test Data")
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', 
             debug=True)
+
