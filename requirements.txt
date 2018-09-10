@@ -3,3 +3,6 @@ Flask-OpenID
 Flask-SQLAlchemy
 Jinja2
 SQLAlchemy
+Scrapy
+Selenuim
+psycopg2
