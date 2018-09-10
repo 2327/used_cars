@@ -2,7 +2,6 @@ import re
 import time
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
-print(sys.path)
 
 from scrapy.spiders import Spider
 from scrapy.selector import Selector
@@ -33,12 +32,12 @@ class CarSpider(Spider):
         super().__init__()
 
         # Настройки для запуска движка браузера без открытия окна
-        # self.firefox_options = Options()
-        # self.firefox_options.add_argument("--headless")
+        self.firefox_options = Options()
+        self.firefox_options.add_argument("--headless")
 
-        self.driver = webdriver.Firefox()
+        # self.driver = webdriver.Firefox()
 
-        # self.driver = webdriver.Firefox(options=self.firefox_options)
+        self.driver = webdriver.Firefox(options=self.firefox_options)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
