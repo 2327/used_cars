@@ -107,7 +107,8 @@ class Base_Updater():
             values = '\', \''.join(tuple(item.values()))
             self.cursor.execute(f'INSERT INTO "CARS_DUMP" ({columns.lower()}) VALUES (\'{values}\')')
         except:
-            dblog.log('DB_ERROR')
+
+            dblog.log(f'INSERT INTO "CARS_DUMP" ({columns.lower()}) VALUES (\'{values}\')')
 
     def end_updating(self):
         try:
@@ -136,7 +137,7 @@ class Data_Getter():
         item['kmage'] = str(result)
 
     def _get_tabname(self, item):
-        tabname = '_'.join((item['brand'], item['model'], item['year']))
+        tabname = '_'.join((item['brand'], item['model']))
         return tabname
 
     def _get_result_from_cursor(self):
@@ -175,6 +176,7 @@ class Data_Getter():
 
         self.cursor.execute(f'SELECT avg_price FROM "{tabname}" '
                                 f'WHERE kmage = \'{item["kmage"]}\' '
+                                f'AND year = \'{item["year"]}\' '
                                 f'ORDER BY id DESC '
                                 f'LIMIT {count} ')
         result = self._get_result_from_cursor()
