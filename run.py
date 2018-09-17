@@ -14,6 +14,14 @@ def index():
 
 @app.route("/search", methods=["POST"])
 def search():
+    getter = Data_Getter()
+    brand = request.form["brand"]
+    model = request.form["model"]
+    kmage = request.form["mileage"]
+    year = request.form["age"]
+    item = { 'brand': brand, 'model': model, 'year': year, 'kmage': kmage }
+    print(item)
+    print(getter.get_price(item))
     return render_template("search.tmpl", result='666')
 
 

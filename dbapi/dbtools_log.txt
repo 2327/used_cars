@@ -1,0 +1,7 @@
+dbtools.py[LINE:156]# ERROR    [2018-09-17 08:13:15,197]  DB Getter internal error: (<class 'TypeError'>, TypeError('string indices must be integers',))
+dbtools.py[LINE:165]# ERROR    [2018-09-17 08:13:15,215]  DB Getter internal error: (<class 'TypeError'>, TypeError('string indices must be integers',))
+dbtools.py[LINE:210]# ERROR    [2018-09-17 08:13:15,241]  No such table in DB: None
+dbtools.py[LINE:156]# ERROR    [2018-09-17 08:18:32,796]  DB Getter internal error: (<class 'ValueError'>, ValueError("invalid literal for int() with base 10: ''",))
+dbtools.py[LINE:210]# ERROR    [2018-09-17 08:18:32,942]  No such table in DB: AC_AC
+dbtools.py[LINE:210]# ERROR    [2018-09-17 08:20:01,522]  No such table in DB: AC_AC_Cobra
+dbtools.py[LINE:210]# ERROR    [2018-09-17 08:20:35,561]  No such table in DB: AC_AC_Cobra
