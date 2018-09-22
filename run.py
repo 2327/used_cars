@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from flask import   Flask, render_template, send_from_directory, \
                     redirect, request, Response, stream_with_context, \
                     make_response, flash, url_for, send_from_directory
@@ -20,9 +22,8 @@ def search():
     kmage = request.form["mileage"]
     year = request.form["age"]
     item = { 'brand': brand, 'model': model, 'year': year, 'kmage': kmage }
-    print(item)
-    print(getter.get_price(item))
-    return render_template("search.tmpl", result='666')
+    price = getter.get_price(item)
+    return render_template("search.tmpl", model=item, price=price)
 
 
 @app.route('/<path:path>')
