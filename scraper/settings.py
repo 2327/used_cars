@@ -67,7 +67,7 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'used_cars.scraper.pipelines.CarsScraperPipeline': 300,
+   'scraper.pipelines.CarsScraperPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

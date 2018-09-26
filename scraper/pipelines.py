@@ -5,10 +5,8 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-# import os, sys
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
-# print('---', sys.path)
-from used_cars.dbapi.dbtools import Base_Updater
+from ..dbapi.dbtools import Base_Updater
+
 
 class CarsScraperPipeline(object):
 
@@ -27,7 +25,7 @@ class CarsScraperPipeline(object):
         print('close_spider() method run...')
         self.updater.end_updating()
 
-    # # DEBUG
+    # # # DEBUG
     # def process_item(self, item, spider):
     #     print(item)
     #     return item

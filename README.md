@@ -27,10 +27,12 @@ pip install -r requirements.txt
 Для работы парсера требуется драйвер geckodriver:
 ```
 wget https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz
-
 tar -xvzf geckodriver*
-
 sudo chmod +x geckodriver
-
 sudo mv geckodriver /usr/local/bin/
+```
+
+Запуск парсера:
+```
+python3 run_spider.py
 ```
