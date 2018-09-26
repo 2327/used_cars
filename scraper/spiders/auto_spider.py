@@ -1,7 +1,7 @@
 import re
 import time
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
+# import os, sys
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
 
 from scrapy.spiders import Spider
 from scrapy.selector import Selector
@@ -14,8 +14,8 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from used_cars.scraper.items import CarsScraperItem
+from ..items import CarsScraperItem
+# from .scraper.items import CarsScraperItem
 
 
 class CarSpider(Spider):
@@ -60,7 +60,6 @@ class CarSpider(Spider):
 
         # получение страницы движком
         self.driver.get(response.url)
-        # self.driver.implicitly_wait(5)
 
         # серия кликов для настройки отображения по всем регионам
         open_region_select = WebDriverWait(self.driver, 10).until(
@@ -93,8 +92,8 @@ class CarSpider(Spider):
 
                 yield response.follow(item.css('a::attr(href)').extract_first(), callback=self.parse_brand)
 
-        except Exception as e:
-            print("*" * 50, e, "*" * 50)
+        except Exception as exc:
+            print("*" * 50, exc, "*" * 50)
 
     def parse_brand(self, response):
 
@@ -110,7 +109,7 @@ class CarSpider(Spider):
             )
             open_full_brand_list.click()
 
-        except:
+        except Exception:
             # Если такой кнопки нет, ничего не делать
             pass
 
@@ -132,8 +131,8 @@ class CarSpider(Spider):
 
         # Марку и модель берем из "хлебных крошек", так как в описании автомобиля
         # они вписаны в одно поле, и разделить их сложно
-        brand = response.css('.ListingCarsH1__breadcrumbs a::text').extract_first()
-        model = response.css('.ListingCarsH1__breadcrumbs a:nth-child(2)::text').extract_first()
+        brand = response.css('.ListingCarsHead__breadcrumbs a::text').extract_first()
+        model = response.css('.ListingCarsHead__breadcrumbs a:nth-child(2)::text').extract_first()
 
         for offer in response.css('.ListingCars-module__list .ListingItem-module__main'):
 
@@ -157,17 +156,20 @@ class CarSpider(Spider):
             print('====================================================')
             yield response.follow(next_page, callback=self.parse_model)
 
-settings = Settings()
 
-settings.setmodule('used_cars.scraper.settings')
+if __name__ == '__main__':
 
-try:
-    process = CrawlerProcess(settings=settings)
+    settings = Settings()
 
-    process.crawl(CarSpider)
+    settings.setmodule('used_cars.scraper.settings')
 
-    process.start()
+    try:
+        process = CrawlerProcess(settings=settings)
 
-except Exception as e:
-    print(f'Closed by {e}')
-    CarSpider.close()
+        process.crawl(CarSpider)
+
+        process.start()
+
+    except Exception as e:
+        print(f'Closed by {e}')
+        CarSpider.close(reason=e)
