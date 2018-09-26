@@ -2,60 +2,65 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
     DECLARE
         rec record;
 		item record;
-        fl boolean;
-        tab_name varchar(20);
+        tab_name varchar(50);
         brand_id integer;
         new_price integer;
 
     BEGIN
         WHILE ((SELECT count(*) FROM "CARS_DUMP") > 0) LOOP
 
+			<<loop_block>>
+			DECLARE
+			BEGIN
+
 			SELECT brand, model, year, kmage INTO rec FROM "CARS_DUMP" ORDER BY id LIMIT 1;
 
-            fl := FALSE;
+			<<model_check>>
+			DECLARE
+			BEGIN
+			    SELECT model INTO item FROM "MODELS" WHERE model = rec.model;
+				IF NOT FOUND THEN
+					SELECT id INTO brand_id FROM "BRANDS" WHERE brand = rec.brand;
+					IF NOT FOUND THEN
+						INSERT INTO "BRANDS"(brand) VALUES (rec.brand);
+						SELECT id INTO brand_id FROM "BRANDS" WHERE brand = rec.brand;
+						IF NOT FOUND THEN
+							RAISE NOTICE 'Failed insertion % into "BRANDS" table.', rec.brand;
+							RAISE transaction_rollback;
+						END IF;
+					END IF;
+					INSERT INTO "MODELS"(brand_id, model) VALUES (brand_id, rec.model);
+					IF NOT FOUND THEN
+							RAISE NOTICE 'Failed insertion % into "MODELS" table.', rec.model;
+							RAISE transaction_rollback;
+					END IF;
+				END IF;
+			EXCEPTION
+			    WHEN transaction_rollback THEN
+				    NULL;
+			END model_check;
 
-            FOR item IN
-			    SELECT brand FROM "BRANDS"
-			LOOP
-                IF rec.brand = item.brand THEN
-                    fl := TRUE;
-                    EXIT;
-                END IF;
-            END LOOP;
-            IF NOT fl THEN
-                INSERT INTO "BRANDS"(brand) VALUES (rec.brand);
-            END IF;
+            tab_name := rec.brand || '_' || rec.model;
 
-            fl := FALSE;
-            FOR item in SELECT model from "MODELS" LOOP
-                IF rec.model = item.model THEN
-                    fl := TRUE;
-                    EXIT;
-                END IF;
-            END LOOP;
-            IF NOT fl THEN
-                SELECT id INTO brand_id FROM "BRANDS" WHERE brand = rec.brand;
-                INSERT INTO "MODELS"(brand_id, model) VALUES (brand_id, rec.model);
-            END IF;
-
-            tab_name := rec.brand || '_' || rec.model || '_' || rec.year;
-            fl := FALSE;
-            FOR item in SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' LOOP
-                IF tab_name = item.table_name THEN
-                    fl := TRUE;
-                    EXIT;
-                END IF;
-            END LOOP;
-            IF NOT fl THEN
-                EXECUTE format(''
+			<<table_check>>
+			DECLARE
+			BEGIN
+			    SELECT table_name INTO item FROM information_schema.tables WHERE table_schema = 'public' AND table_name = tab_name;
+				IF NOT FOUND THEN
+				    EXECUTE format(''
                     'CREATE TABLE %I ('
                         'ID serial NOT NULL,'
+						'YEAR smallint NOT NULL,'
                         'KMAGE integer NOT NULL,'
                         'AVG_PRICE integer NOT NULL,'
                         'ADD_DATE date NOT NULL,'
-                        'CONSTRAINT %s_pkey PRIMARY KEY (ID))',
+                        'CONSTRAINT "%s_pkey" PRIMARY KEY (ID))',
                     tab_name, tab_name);
-            END IF;
+				END IF;
+			EXCEPTION
+			    WHEN transaction_rollback THEN
+				    RAISE NOTICE 'Unable to create % table.', tab_name;
+			END table_check;
 
             SELECT AVG(price) INTO new_price FROM "CARS_DUMP" WHERE
                 brand = rec.brand AND
@@ -63,13 +68,17 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
                 year = rec.year AND
                 kmage = rec.kmage;
 
-            EXECUTE format('INSERT INTO %I(kmage, avg_price, add_date) VALUES (%L, %L, CURRENT_DATE)', tab_name, rec.kmage, new_price);
+            EXECUTE format('INSERT INTO %I(year, kmage, avg_price, add_date) VALUES (%L, %L, %L, CURRENT_DATE)', tab_name, rec.year, rec.kmage, new_price);
             DELETE FROM "CARS_DUMP" WHERE
                     brand = rec.brand AND
                     model = rec.model AND
                     year = rec.year AND
                     kmage = rec.kmage;
 
+			EXCEPTION
+			    WHEN transaction_rollback THEN
+				    RAISE NOTICE 'Loop iteration failed';
+			END loop_block;
         END LOOP;
         DROP TABLE "CARS_DUMP";
         RETURN TRUE;

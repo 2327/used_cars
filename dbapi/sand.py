@@ -1,7 +1,7 @@
-from dbtools import Base_Updater, Data_Getter
+from .dbtools import Base_Updater, Data_Getter
 
 
-item1 = {'brand': 'VW', 'model': 'Golf', 'year': '2010', 'kmage': '135480', 'price': '560000'}
+item1 = {'brand': 'VW', 'model': 'Golf', 'year': '2010', 'kmage': '150000', 'price': '560000'}
 item11 = {'brand': 'VW', 'model': 'Golf', 'year': '2010', 'kmage': '135480', 'price': '600000'}
 item12 = {'brand': 'VW', 'model': 'Golf', 'year': '2010', 'kmage': '135480', 'price': '610000'}
 item13 = {'brand': 'VW', 'model': 'Golf', 'year': '2010', 'kmage': '135480', 'price': '560000'}
