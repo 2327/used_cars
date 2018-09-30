@@ -21,7 +21,7 @@ def search():
     model = request.form["model"]
     kmage = request.form["mileage"]
     year = request.form["age"]
-    item = { 'brand': brand, 'model': model, 'year': year, 'kmage': kmage }
+    item = {'brand': brand, 'model': model, 'year': year, 'kmage': kmage}
     price = getter.get_price(item)
     return render_template("search.tmpl", model=item, price=price)
 
