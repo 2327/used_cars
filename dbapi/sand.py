@@ -20,8 +20,8 @@ getter = Data_Getter()
 for brand in getter.get_brands():
     print(brand)
 
-getter = Data_Getter()
 for model in getter.get_models('Volvo'):
     print(model)
 
-print(getter.get_price(item))
+print(getter.get_avg_price(item))
+print(getter.get_prices(item))
