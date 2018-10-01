@@ -5,31 +5,22 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
         tab_name varchar(50);
         brand_id integer;
         new_price integer;
+        prices integer[];
 
     BEGIN
-        WHILE ((SELECT count(*) FROM "CARS_DUMP") > 0) LOOP
-
-			<<loop_block>>
-			DECLARE
-			BEGIN
+        WHILE TRUE LOOP
 
 			SELECT brand, model, year, kmage INTO rec FROM "CARS_DUMP" ORDER BY id LIMIT 1;
+			IF NOT FOUND THEN
+			    EXIT;
+			END IF;
 
-			<<model_check>>
+			<<dict_check>>
 			DECLARE
 			BEGIN
-			    SELECT model INTO item FROM "MODELS" WHERE model = rec.model;
+			    SELECT * INTO item FROM "CARS" WHERE model = rec.model AND brand = rec.brand;
 				IF NOT FOUND THEN
-					SELECT id INTO brand_id FROM "BRANDS" WHERE brand = rec.brand;
-					IF NOT FOUND THEN
-						INSERT INTO "BRANDS"(brand) VALUES (rec.brand);
-						SELECT id INTO brand_id FROM "BRANDS" WHERE brand = rec.brand;
-						IF NOT FOUND THEN
-							RAISE NOTICE 'Failed insertion % into "BRANDS" table.', rec.brand;
-							RAISE transaction_rollback;
-						END IF;
-					END IF;
-					INSERT INTO "MODELS"(brand_id, model) VALUES (brand_id, rec.model);
+					INSERT INTO "CARS"(brand, model) VALUES (rec.brand, rec.model);
 					IF NOT FOUND THEN
 							RAISE NOTICE 'Failed insertion % into "MODELS" table.', rec.model;
 							RAISE transaction_rollback;
@@ -38,47 +29,39 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
 			EXCEPTION
 			    WHEN transaction_rollback THEN
 				    NULL;
-			END model_check;
+			END dict_check;
 
             tab_name := rec.brand || '_' || rec.model;
 
-			<<table_check>>
+			<<create_table>>
 			DECLARE
 			BEGIN
-			    SELECT table_name INTO item FROM information_schema.tables WHERE table_schema = 'public' AND table_name = tab_name;
-				IF NOT FOUND THEN
-				    EXECUTE format(''
-                    'CREATE TABLE %I ('
+			    EXECUTE format(''
+                    'CREATE TABLE IF NOT EXISTS %I ('
                         'ID serial NOT NULL,'
 						'YEAR smallint NOT NULL,'
                         'KMAGE integer NOT NULL,'
                         'AVG_PRICE integer NOT NULL,'
+                        'PRICES integer[] NOT NULL,'
                         'ADD_DATE date NOT NULL,'
                         'CONSTRAINT "%s_pkey" PRIMARY KEY (ID))',
                     tab_name, tab_name);
-				END IF;
-			EXCEPTION
-			    WHEN transaction_rollback THEN
-				    RAISE NOTICE 'Unable to create % table.', tab_name;
-			END table_check;
+			END create_table;
 
-            SELECT AVG(price) INTO new_price FROM "CARS_DUMP" WHERE
-                brand = rec.brand AND
-                model = rec.model AND
-                year = rec.year AND
-                kmage = rec.kmage;
+            SELECT AVG(price), array_agg(price) INTO new_price, prices FROM "CARS_DUMP" WHERE
+                    brand = rec.brand AND
+                    model = rec.model AND
+                    year = rec.year AND
+                    kmage = rec.kmage;
 
-            EXECUTE format('INSERT INTO %I(year, kmage, avg_price, add_date) VALUES (%L, %L, %L, CURRENT_DATE)', tab_name, rec.year, rec.kmage, new_price);
+            EXECUTE format('INSERT INTO %I(year, kmage, avg_price, prices, add_date) VALUES (%L, %L, %L, %L, CURRENT_DATE)', tab_name, rec.year, rec.kmage, new_price, prices);
+
             DELETE FROM "CARS_DUMP" WHERE
                     brand = rec.brand AND
                     model = rec.model AND
                     year = rec.year AND
                     kmage = rec.kmage;
 
-			EXCEPTION
-			    WHEN transaction_rollback THEN
-				    RAISE NOTICE 'Loop iteration failed';
-			END loop_block;
         END LOOP;
         DROP TABLE "CARS_DUMP";
         RETURN TRUE;
