@@ -3,7 +3,6 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
         rec record;
 		item record;
         tab_name varchar(50);
-        brand_id integer;
         new_price integer;
         prices integer[];
 
