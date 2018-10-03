@@ -1,0 +1,68 @@
+CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
+    DECLARE
+        rec record;
+		item record;
+        tab_name varchar(50);
+        new_price integer;
+        prices integer[];
+
+    BEGIN
+        WHILE TRUE LOOP
+
+			SELECT brand, model, year, kmage INTO rec FROM "CARS_DUMP" ORDER BY id LIMIT 1;
+			IF NOT FOUND THEN
+			    EXIT;
+			END IF;
+
+			<<dict_check>>
+			DECLARE
+			BEGIN
+			    SELECT * INTO item FROM "CARS" WHERE model = rec.model AND brand = rec.brand;
+				IF NOT FOUND THEN
+					INSERT INTO "CARS"(brand, model) VALUES (rec.brand, rec.model);
+					IF NOT FOUND THEN
+							RAISE NOTICE 'Failed insertion % into "MODELS" table.', rec.model;
+							RAISE transaction_rollback;
+					END IF;
+				END IF;
+			EXCEPTION
+			    WHEN transaction_rollback THEN
+				    NULL;
+			END dict_check;
+
+            tab_name := rec.brand || '_' || rec.model;
+
+			<<create_table>>
+			DECLARE
+			BEGIN
+			    EXECUTE format(''
+                    'CREATE TABLE IF NOT EXISTS %I ('
+                        'ID serial NOT NULL,'
+						'YEAR smallint NOT NULL,'
+                        'KMAGE integer NOT NULL,'
+                        'AVG_PRICE integer NOT NULL,'
+                        'PRICES integer[] NOT NULL,'
+                        'ADD_DATE date NOT NULL,'
+                        'CONSTRAINT "%s_pkey" PRIMARY KEY (ID))',
+                    tab_name, tab_name);
+			END create_table;
+
+            SELECT AVG(price), array_agg(price) INTO new_price, prices FROM "CARS_DUMP" WHERE
+                    brand = rec.brand AND
+                    model = rec.model AND
+                    year = rec.year AND
+                    kmage = rec.kmage;
+
+            EXECUTE format('INSERT INTO %I(year, kmage, avg_price, prices, add_date) VALUES (%L, %L, %L, %L, CURRENT_DATE)', tab_name, rec.year, rec.kmage, new_price, prices);
+
+            DELETE FROM "CARS_DUMP" WHERE
+                    brand = rec.brand AND
+                    model = rec.model AND
+                    year = rec.year AND
+                    kmage = rec.kmage;
+
+        END LOOP;
+        DROP TABLE "CARS_DUMP";
+        RETURN TRUE;
+    END;
+$$ LANGUAGE plpgsql;
