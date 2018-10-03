@@ -1,3 +1,36 @@
+"""This module contains the tools to create and update used cars database and to get data.
+For using this module you have to install psycopg2 db driver.
+You can change DB settings in dbcfg.py
+
+    To create used cars database you should open terminal in used_cars directory and enter "python -m dbapi.create_db"
+command.
+
+    Base_Updater class provide DB update mechanism. DB updating performed in several steps:
+    1. You should to create Base_Updater instance (for example "updater").
+    2. Then execute updater.start_updating() command that prepare environment for DB update:
+        - create connection to DB and cursor to queries execution;
+        - create table "CARS_DUMP" - buffer for new data about cars.
+    3. Now you can put your data into DB. Prepare the items - dicts contains such keys: brand, model, year, kmage, price.
+    Remember that values can't be empty! Then use updater.update(item) method for all your items.
+    4. Finally use updater.end_update() method. This method performs sort function that sorting all new data in DB then
+    closing connection to DB.
+
+    To get data from DB you can use Data_Getter class. You should create the instance for use it! Data_Getter provides
+several methods to get data about used cars from DB (for example DG instance called "getter"):
+    1. getter.get_brands() return list contains all used cars brands from DB;
+    2. getter.get_models(brandname) return list of all used cars models for brand "brandname" from DB;
+    3. getter.get_avg_price(item) return the average price for car was described in "item" dict. Dict have to contain
+    such keys: brand, model, year, kmage.
+    4. getter.get_prices(item) return list of all prices was got from last update for car was described in "item" dict.
+    5. getter.get_points(item) return list with 5 numbers. Each number is count of prices was got from last update which
+    value is in certain range relative to average car price:
+        0) the zero element: count of prices that less than 0.8*avg_price
+        1) the first element: greater or equal to 0.8 but less than 0.95*avg_price
+        2) the second element: greater or equal to 0.95 but less or equal t0 1.05*avg_price
+        3) the third element: greater than 1.05 but less or equal to 1.2*avg_price
+        4) the fourth element: greater than 1.2*avg_price"""
+
+
 import sys
 import psycopg2
 from .dbcfg import HOST, PORT, DB_NAME, USER, PASSWORD, ADMIN, ADM_PASS, ENCODING, TABLESPACE, CONNECTION_LIMIT, connect_string
@@ -34,27 +67,15 @@ class Base_Creator():
         except:
             dblog.dbtools_logger.error(f'DB creation error: {sys.exc_info()[0:2]}')
 
-    def create_brands(self):
+    def create_dict_tab(self):
         try:
-           self.cursor.execute(f'CREATE TABLE {DB_NAME}.public."BRANDS" ('
+           self.cursor.execute(f'CREATE TABLE {DB_NAME}.public."CARS" ('
                                    f'ID serial NOT NULL,'
                                    f'BRAND varchar(20) NOT NULL,'
+                                   f'MODEL varchar(20) NOT NULL,'
                                    f'CONSTRAINT BRANDS_pkey PRIMARY KEY (ID))')
         except:
-            dblog.dbtools_logger.error(f'Brands table creation error: {sys.exc_info()[0:2]}')
-
-    def create_models(self):
-        try:
-            self.cursor.execute(f'CREATE TABLE {DB_NAME}.public."MODELS" ('
-                                    f'ID serial NOT NULL,'
-                                    f'BRAND_ID integer NOT NULL,'
-                                    f'MODEL varchar(20) NOT NULL,'
-                                    f'CONSTRAINT MODELS_pkey PRIMARY KEY (ID),'
-                                    f'CONSTRAINT BRAND_MODEL_link FOREIGN KEY (BRAND_ID) '
-                                    f'REFERENCES {DB_NAME}.public."BRANDS"(ID) '
-                                    f'ON DELETE CASCADE)')
-        except:
-            dblog.dbtools_logger.error(f'Models table creation error: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.error(f'Dict table creation error: {sys.exc_info()[0:2]}')
 
     def create_sort_proc(self):
         try:
@@ -65,8 +86,8 @@ class Base_Creator():
             dblog.dbtools_logger.error(f'Sorting procedure creation error: {sys.exc_info()[0:2]}')
 
     def create_all(self):
-        self.create_brands()
-        self.create_models()
+        self.create_dict_tab()
+        # self.create_models()
         self.create_sort_proc()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -127,7 +148,7 @@ class Base_Updater():
 
 
 class Data_Getter():
-    __slots__ = ['connection', 'cursor']
+    __slots__ = ['connection', 'cursor', 'current_id']
 
     def __init__(self):
         pass
@@ -158,6 +179,14 @@ class Data_Getter():
     def _get_tabname(self, item):
         try:
             tabname = '_'.join((item['brand'], item['model']))
+            self.cursor.execute('SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\'')
+            for name in self.cursor.fetchall():
+                if tabname == name[0]:
+                    break
+            else:
+                self.disconnect()
+                dblog.dbtools_logger.error(f'No such table in DB: {tabname}')
+                return False
             return tabname
         except KeyError:
             dblog.dbtools_logger.error(f'No such keys in items.keys(): {sys.exc_info()[1]}')
@@ -176,47 +205,78 @@ class Data_Getter():
     def get_brands(self):
         try:
             self.connect()
-            self.cursor.execute('SELECT brand FROM "BRANDS"')
+            self.cursor.execute('SELECT brand FROM "CARS" DISTINCT')
             result = self._get_result_from_cursor()
             self.disconnect()
             return result
         except:
-            dblog.dbtools_logger.error(f'Brands list getting filed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.error(f'Brands list getting failed: {sys.exc_info()[0:2]}')
 
     def get_models(self, brandname):
         try:
             self.connect()
-            self.cursor.execute(f'SELECT model FROM "MODELS" WHERE '
-                                    f'brand_id = (SELECT id FROM "BRANDS" WHERE brand = \'{brandname}\')')
+            self.cursor.execute(f'SELECT model FROM "CARS" WHERE '
+                                    f'brand = \'{brandname}\'')
             result = self._get_result_from_cursor()
             self.disconnect()
             return result
         except:
-            dblog.dbtools_logger.error(f'Models list getting filed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.error(f'Models list getting failed: {sys.exc_info()[0:2]}')
 
-    def get_price(self, item, count = 7):
+    def get_avg_price(self, item, count = 7):
         try:
             self._round5_mileage(item)
             self.connect()
             tabname = self._get_tabname(item)
-
-            self.cursor.execute('SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\'')
-
-            for name in self.cursor.fetchall():
-                if tabname == name[0]:
-                    break
-            else:
+            if tabname:
+                self.cursor.execute(f'SELECT avg_price FROM "{tabname}" '
+                                        f'WHERE kmage = \'{item["kmage"]}\' '
+                                        f'AND year = \'{item["year"]}\' '
+                                        f'ORDER BY id DESC '
+                                        f'LIMIT {count} ')
+                result = self._get_result_from_cursor()
                 self.disconnect()
-                dblog.dbtools_logger.error(f'No such table in DB: {tabname}')
+                return result
+            else:
                 return False
-
-            self.cursor.execute(f'SELECT avg_price FROM "{tabname}" '
-                                    f'WHERE kmage = \'{item["kmage"]}\' '
-                                    f'AND year = \'{item["year"]}\' '
-                                    f'ORDER BY id DESC '
-                                    f'LIMIT {count} ')
-            result = self._get_result_from_cursor()
-            self.disconnect()
-            return result
         except:
-            dblog.dbtools_logger.error(f'Price getting filed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.error(f'Price getting failed: {sys.exc_info()[0:2]}')
+
+    def get_prices(self, item):
+        try:
+            self._round5_mileage(item)
+            self.connect()
+            tabname = self._get_tabname(item)
+            if tabname:
+                self.cursor.execute(f'SELECT prices FROM "{tabname}" '
+                                        f'WHERE kmage = \'{item["kmage"]}\' '
+                                        f'AND year = \'{item["year"]}\' '
+                                        f'ORDER BY id DESC '
+                                        f'LIMIT 1 ')
+                result = self.cursor.fetchone()[0]
+                self.disconnect()
+                return result
+            else:
+                return False
+        except:
+            dblog.dbtools_logger.error(f'Prices getting failed: {sys.exc_info()[0:2]}')
+
+    def get_points(self, item):
+        try:
+            avg_price = self.get_avg_price(item, count=1)
+            prices = self.get_prices(item)
+            counters = [0 for _ in range(5)]
+            for price in prices:
+                if price < 0.8*avg_price:
+                    counters[0] += 1
+                elif 0.8*avg_price <= price < 0.95*avg_price:
+                    counters[1] += 1
+                elif 0.95*avg_price <= price <= 1.05*avg_price:
+                    counters[2] += 1
+                elif 1.05*avg_price < price <= 1.2*avg_price:
+                    counters[3] += 1
+                else:
+                    counters[4] += 1
+            return counters
+        except:
+            dblog.dbtools_logger.error(f'Gist data getting failed: {sys.exc_info()[0:2]}')

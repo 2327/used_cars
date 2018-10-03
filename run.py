@@ -23,6 +23,7 @@ def search():
     year = request.form["age"]
     item = {'brand': brand, 'model': model, 'year': year, 'kmage': kmage}
     price = getter.get_price(item)
+    print(item)
     return render_template("search.tmpl", model=item, price=price)
 
 
