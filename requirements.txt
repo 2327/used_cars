@@ -4,3 +4,5 @@ Flask-SQLAlchemy
 Jinja2
 SQLAlchemy
 psycopg2-binary
+Scrapy
+Selenuim
