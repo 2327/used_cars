@@ -1,0 +1,21 @@
+{% extends "layout.tmpl" %}
+{% block body %}
+
+<section id="intro" class="intro">
+        <div class="col-md-6">
+                <div class="card card-body">
+					<br><br><br><br>
+                    <h3 class="text-center mb-4">релульзаты поиска </h3>
+						<p>релульзаты поиска</p>
+						<ul>
+						{% for key, value in model.items() %}
+                        <li>{{ key }}: {{ value }}</li>
+                        {% endfor %}
+                        </ul>
+						</div>
+						<div>Цена: {{ price }} </div>
+					</div>
+        </div>
+  </section>
+
+{% endblock %}

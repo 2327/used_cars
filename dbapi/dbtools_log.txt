@@ -1,2 +1,0 @@
-dbtools.py[LINE:35]# ERROR    [2018-10-01 16:26:47,262]  DB creation error: (<class 'psycopg2.ProgrammingError'>, ProgrammingError('database "garage" already exists\n',))
-dbtools.py[LINE:45]# ERROR    [2018-10-01 16:26:51,714]  Dict table creation error: (<class 'psycopg2.ProgrammingError'>, ProgrammingError('relation "brands_pkey" already exists\n',))
