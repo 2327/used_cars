@@ -205,7 +205,7 @@ class Data_Getter():
     def get_brands(self):
         try:
             self.connect()
-            self.cursor.execute('SELECT brand FROM "CARS" DISTINCT')
+            self.cursor.execute('SELECT DISTINCT brand FROM "CARS"')
             result = self._get_result_from_cursor()
             self.disconnect()
             return result
