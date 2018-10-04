@@ -11,6 +11,10 @@ app = Flask(__name__)
 @app.route("/")
 @app.route("/index.html")
 def index():
+    getter = Data_Getter()
+#    for brand in getter.get_brands():
+    print(getter.get_brands)
+
     return render_template('index.tmpl')
 
 
