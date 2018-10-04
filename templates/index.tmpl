@@ -10,12 +10,18 @@
                     <fieldset>
                         <div class="form-group has-error">
 			      <select class="form-control input-lg">
-                                   <option value="brand">brand</option>
-
+			          {% for brand in brands %}
+                                   <option value="{{ brand }} ">{{ brand }}</option>
+				  {% endfor %}
                               </select>
                         </div>
                         <div class="form-group has-success">
-                            <input class="form-control input-lg" placeholder="Модель" name="model" value="" type="text">
+                              <select class="form-control input-lg">
+                                  {% for model in models %}
+                                   <option value="{{ model }} ">{{ model }}</option>
+                                  {% endfor %}
+                              </select>
+
                         </div>
                         <div class="form-group has-success">
                             <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">

@@ -12,10 +12,10 @@ app = Flask(__name__)
 @app.route("/index.html")
 def index():
     getter = Data_Getter()
-#    for brand in getter.get_brands():
-    print(getter.get_brands)
-
-    return render_template('index.tmpl')
+    brands = getter.get_brands()
+#    models = getter.get_models(request.form["b"]):
+   
+    return render_template('index.tmpl',brands=brands)
 
 
 @app.route("/search", methods=["POST"])
