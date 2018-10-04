@@ -205,7 +205,7 @@ class Data_Getter():
     def get_brands(self):
         try:
             self.connect()
-            self.cursor.execute('SELECT brand FROM "CARS" DISTINCT')
+            self.cursor.execute('SELECT DISTINCT brand FROM "CARS"')
             result = self._get_result_from_cursor()
             self.disconnect()
             return result
@@ -265,18 +265,19 @@ class Data_Getter():
         try:
             avg_price = self.get_avg_price(item, count=1)
             prices = self.get_prices(item)
-            counters = [0 for _ in range(5)]
+            counters = [0 for _ in range(6)]
+            counters[0] = avg_price
             for price in prices:
                 if price < 0.8*avg_price:
-                    counters[0] += 1
-                elif 0.8*avg_price <= price < 0.95*avg_price:
                     counters[1] += 1
-                elif 0.95*avg_price <= price <= 1.05*avg_price:
+                elif 0.8*avg_price <= price < 0.95*avg_price:
                     counters[2] += 1
-                elif 1.05*avg_price < price <= 1.2*avg_price:
+                elif 0.95*avg_price <= price <= 1.05*avg_price:
                     counters[3] += 1
-                else:
+                elif 1.05*avg_price < price <= 1.2*avg_price:
                     counters[4] += 1
+                else:
+                    counters[5] += 1
             return counters
         except:
             dblog.dbtools_logger.error(f'Gist data getting failed: {sys.exc_info()[0:2]}')
