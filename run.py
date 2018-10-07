@@ -6,18 +6,37 @@ from flask import   Flask, render_template, send_from_directory, \
 import os 
 from dbapi.dbtools import Data_Getter
 
+# api versioning
+#from api.v1 import api as api_v1
+#from api import common
+
 app = Flask(__name__)
 
-@app.route("/")
-@app.route("/index.html")
+
+@app.route("/", methods=["GET", "POST"])
+@app.route("/index.html", methods=["GET", "POST"])
 def index():
     getter = Data_Getter()
-    brands = getter.get_brands()
-#    models = getter.get_models(request.form["b"]):
-   
+
+    if request.method == 'POST':
+        print('POST start')
+        brand = request.form["brand"]
+        print(brand)
+
+        if brand is not None:
+            models = getter.get_models(brand)
+            print(getter.get_avg_price(item))
+            return render_template('index.tmpl',models=models)
+        else:
+            print('something went wrong')
+
+    else:
+        print('GET')
+        brands = getter.get_brands()
+        return render_template('index.tmpl',brands=brands)
     return render_template('index.tmpl',brands=brands)
 
-
+@app.route("/search", methods=["POST"])
 @app.route("/search", methods=["POST"])
 def search():
     getter = Data_Getter()

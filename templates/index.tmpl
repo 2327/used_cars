@@ -5,36 +5,54 @@
         <div class="col-md-6">
                 <div class="card card-body">
 <br><br><br><br>
-                    <h3 class="text-center mb-4">Ввод данных</h3>
-                    <form action="/search" method="POST">
-                    <fieldset>
-                        <div class="form-group has-error">
-			      <select class="form-control input-lg">
-			          {% for brand in brands %}
-                                   <option value="{{ brand }} ">{{ brand }}</option>
-				  {% endfor %}
-                              </select>
-                        </div>
-                        <div class="form-group has-success">
-                              <select class="form-control input-lg">
-                                  {% for model in models %}
-                                   <option value="{{ model }} ">{{ model }}</option>
-                                  {% endfor %}
-                              </select>
 
-                        </div>
-                        <div class="form-group has-success">
-                            <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control input-lg" placeholder="Пробег" name="mileage" value="" type="text">
-                        </div>
-                        <input class="btn btn-lg btn-primary btn-block" value="Оценить" type="submit">
-                    </fieldset>
-                    </form>
+
+                    <h3 class="text-center mb-4">Ввод данных</h3>
+
+                    <form action="./" method="POST">
+                     <fieldset>
+                       <select class="form-control input-lg" name="brand" id="brand">
+                        <option>Выберите бренд...</option>
+                        {% for brand in brands %}
+                         <option value="{{ brand }}">{{ brand }}</option>
+                        {% endfor %}
+                       </select>
+
+                       <select class="form-control input-lg" name="models" id="models">
+                        {% for model in models %}
+                         <option value="{{ model }} ">{{ model }}</option>
+                        {% endfor %}
+                       </select>
+ 
+                       <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">
+                       <input class="form-control input-lg" placeholder="Пробег" name="mileage" value="" type="text">
+                       <input class="btn btn-lg btn-primary btn-block" value="Оценить" name="submit" type="submit" />
+                     </fieldset> 
+</form>
+
                 </div>
         </div>
-  </section>
+</section>
+
+                    <script src="/js/jquery.min.js"></script>
+                    <script src="/js/jquery.chained.remote.min.js"></script>
+
+		            <script>
+                      $("#models").remoteChained({
+                         parents : "#brand",
+                         url : "/"
+                      });
+
+                      $("#model").remoteChained({
+                         parents : "#series",
+                         url : "/api/models"
+                      });
+
+                      $("#engine").remoteChained({
+                         parents : "#series, #model",
+                         url : "/api/engines"
+                      });
+                    </script>
 
 {% endblock %}
 
