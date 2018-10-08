@@ -22,18 +22,26 @@ def index():
         print('POST start')
         brand = request.form["brand"]
         print(brand)
-
-        if brand is not None:
-            models = getter.get_models(brand)
-            print(getter.get_avg_price(item))
-            return render_template('index.tmpl',models=models)
-        else:
-            print('something went wrong')
-
     else:
-        print('GET')
+        print('GET start')
         brands = getter.get_brands()
-        return render_template('index.tmpl',brands=brands)
+        #
+        #
+        # name = request.form.get('name', None)
+        # if name is None:
+        #
+        #
+        #brand = request.form['brand']
+        brand = request.args.get('brand', None)
+
+        if brand is None:
+            return render_template('index.tmpl', brands=brands)
+        else:
+            print('GET model')
+            models = getter.get_models(brand)
+            print(models)
+            return render_template('index.tmpl', brands=brands, models=models)
+
     return render_template('index.tmpl',brands=brands)
 
 @app.route("/search", methods=["POST"])
