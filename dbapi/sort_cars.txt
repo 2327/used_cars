@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
     BEGIN
         WHILE TRUE LOOP
 
-			SELECT brand, model, year, kmage INTO rec FROM "CARS_DUMP" ORDER BY id LIMIT 1;
+			SELECT brand, model, year, kmage, engine, gearbox INTO rec FROM "CARS_DUMP" ORDER BY id LIMIT 1;
 			IF NOT FOUND THEN
 			    EXIT;
 			END IF;
@@ -40,6 +40,8 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
                         'ID serial NOT NULL,'
 						'YEAR smallint NOT NULL,'
                         'KMAGE integer NOT NULL,'
+                        'ENGINE varchar(20) NOT NULL,'
+                        'GEARBOX varchar(20) NOT NULL,'
                         'AVG_PRICE integer NOT NULL,'
                         'PRICES integer[] NOT NULL,'
                         'ADD_DATE date NOT NULL,'
@@ -53,13 +55,17 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
                     year = rec.year AND
                     kmage = rec.kmage;
 
-            EXECUTE format('INSERT INTO %I(year, kmage, avg_price, prices, add_date) VALUES (%L, %L, %L, %L, CURRENT_DATE)', tab_name, rec.year, rec.kmage, new_price, prices);
+            EXECUTE format('INSERT INTO %I(year, kmage, engine, gearbox, avg_price, prices, add_date) '
+                           'VALUES (%L, %L, %L, %L, %L, %L, CURRENT_DATE)',
+                           tab_name, rec.year, rec.kmage, rec.engine, rec.gearbox, new_price, prices);
 
             DELETE FROM "CARS_DUMP" WHERE
                     brand = rec.brand AND
                     model = rec.model AND
                     year = rec.year AND
-                    kmage = rec.kmage;
+                    kmage = rec.kmage AND
+                    engine = rec.engine AND
+                    gearbox = rec.gearbox;
 
         END LOOP;
         DROP TABLE "CARS_DUMP";

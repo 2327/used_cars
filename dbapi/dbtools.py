@@ -10,7 +10,8 @@ command.
     2. Then execute updater.start_updating() command that prepare environment for DB update:
         - create connection to DB and cursor to queries execution;
         - create table "CARS_DUMP" - buffer for new data about cars.
-    3. Now you can put your data into DB. Prepare the items - dicts contains such keys: brand, model, year, kmage, price.
+    3. Now you can put your data into DB. Prepare the items - dicts contains such keys: brand, model, year, kmage,
+    price, engine, gearbox.
     Remember that values can't be empty! Then use updater.update(item) method for all your items.
     4. Finally use updater.end_update() method. This method performs sort function that sorting all new data in DB then
     closing connection to DB.
@@ -19,10 +20,16 @@ command.
 several methods to get data about used cars from DB (for example DG instance called "getter"):
     1. getter.get_brands() return list contains all used cars brands from DB;
     2. getter.get_models(brandname) return list of all used cars models for brand "brandname" from DB;
-    3. getter.get_avg_price(item) return the average price for car was described in "item" dict. Dict have to contain
-    such keys: brand, model, year, kmage.
-    4. getter.get_prices(item) return list of all prices was got from last update for car was described in "item" dict.
-    5. getter.get_points(item) return list with 5 numbers. Each number is count of prices was got from last update which
+    3. getter.get_years(brandname, modelname) return list of all used cars years of manufacture for brand "brandname"
+    and model "modelname" from DB;
+    4. getter.get_engines(brandname, modelname, year) return list of all engines for described brand, model
+    and year of manufacture from DB;
+    5. getter.get_gearbox(brandname, modelname, year, engine) return list of all gearboxes for described brand, model,
+    engine and year of manufacture from DB;
+    6. getter.get_avg_price(item) return the average price for car was described in "item" dict. Dict have to contain
+    such keys: brand, model, year, kmage, engine, gearbox.
+    7. getter.get_prices(item) return list of all prices was got from last update for car was described in "item" dict.
+    8. getter.get_points(item) return list with 5 numbers. Each number is count of prices was got from last update which
     value is in certain range relative to average car price:
         0) the zero element: count of prices that less than 0.8*avg_price
         1) the first element: greater or equal to 0.8 but less than 0.95*avg_price
@@ -66,6 +73,12 @@ class Base_Creator():
             self.cursor.execute(f'GRANT ALL ON DATABASE {DB_NAME} TO {ADMIN}')
         except:
             dblog.dbtools_logger.error(f'DB creation error: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Base_Creator.create_base() was executed with internal args: \n'
+                                       f'DATABASE {DB_NAME}\n'
+                                       f'OWNER = {ADMIN}\n'
+                                       f'ENCODING = {ENCODING}\n'
+                                       f'TABLESPACE = {TABLESPACE}\n'
+                                       f'CONNECTION LIMIT = {CONNECTION_LIMIT}\n')
 
     def create_dict_tab(self):
         try:
@@ -76,6 +89,8 @@ class Base_Creator():
                                    f'CONSTRAINT BRANDS_pkey PRIMARY KEY (ID))')
         except:
             dblog.dbtools_logger.error(f'Dict table creation error: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Base_Creator.create_dict_tab() was executed with internal args: \n'
+                                       f'TABLE {DB_NAME}')
 
     def create_sort_proc(self):
         try:
@@ -113,12 +128,16 @@ class Base_Updater():
                                'YEAR  smallint NOT NULL,'
                                'KMAGE  integer NOT NULL,'
                                'PRICE integer NOT NULL,'
+                               'ENGINE varchar(20) NOT NULL,'
+                               'GEARBOX varchar(20) NOT NULL,'
                                'CONSTRAINT CARS_DUMP_pkey PRIMARY KEY (ID));')
             self.connection = connection
             self.cursor = cursor
             return self.cursor
         except:
             dblog.dbtools_logger.error(f'Preparing updating error: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Base_Updater.start_updating() was executed with internal args: \n'
+                                       f'connect string = {connect_string}')
 
     def round5_mileage(self, item):
         try:
@@ -127,6 +146,8 @@ class Base_Updater():
             item['kmage'] = str(result)
         except KeyError:
             dblog.dbtools_logger.error(f'No such key in items.keys(): {sys.exc_info()[1]}')
+            dblog.dbtools_logger.debug(f'Base_Updater.round5_mileage() was executed with args: \n'
+                                       f'item = {item}')
         except:
             dblog.dbtools_logger.error(f'DB Updater internal error: {sys.exc_info()[0:2]}')
 
@@ -138,6 +159,8 @@ class Base_Updater():
             self.cursor.execute(f'INSERT INTO "CARS_DUMP" ({columns.lower()}) VALUES (\'{values}\')')
         except:
             dblog.dbtools_logger.error(f'Updating error: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Base_Updater.update() was executed with args: \n'
+                                       f'item = {item}')
 
     def end_updating(self):
         try:
@@ -159,6 +182,8 @@ class Data_Getter():
             self.cursor = self.connection.cursor()
         except:
             dblog.dbtools_logger.error(f'DB connection error: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.connect() was executed with internal args: \n'
+                                       f'connect_string = {connect_string}')
 
     def disconnect(self):
         try:
@@ -173,6 +198,8 @@ class Data_Getter():
             item['kmage'] = str(result)
         except KeyError:
             dblog.dbtools_logger.error(f'No such key in items.keys(): {sys.exc_info()[1]}')
+            dblog.dbtools_logger.debug(f'Data_Getter._round5_mileage() was executed with args: \n'
+                                       f'item = {item}')
         except:
             dblog.dbtools_logger.error(f'DB Getter internal error: {sys.exc_info()[0:2]}')
 
@@ -190,6 +217,8 @@ class Data_Getter():
             return tabname
         except KeyError:
             dblog.dbtools_logger.error(f'No such keys in items.keys(): {sys.exc_info()[1]}')
+            dblog.dbtools_logger.debug(f'Data_Getter._get_tabname() was executed with args: \n'
+                                       f'item = {item}')
         except:
             dblog.dbtools_logger.error(f'DB Getter internal error: {sys.exc_info()[0:2]}')
 
@@ -222,6 +251,65 @@ class Data_Getter():
             return result
         except:
             dblog.dbtools_logger.error(f'Models list getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_models() was executed with args: \n'
+                                       f'brandname = {brandname}')
+
+    def get_years_for_model(self, brandname, modelname):
+        try:
+            self.connect()
+            tabname = self._get_tabname({'brand': brandname, 'model': modelname})
+            if tabname:
+                self.cursor.execute(f'SELECT DISTINCT year FROM "{tabname}"')
+                result = self._get_result_from_cursor()
+                self.disconnect()
+                return result
+            else:
+                return False
+        except:
+            dblog.dbtools_logger.error(f'Years getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_years_for_model() was executed with args: \n'
+                                       f'brandname = {brandname}\n'
+                                       f'modelname = {modelname}')
+
+    def get_engines(self, brandname, modelname, year):
+        try:
+            self.connect()
+            tabname = self._get_tabname({'brand': brandname, 'model': modelname})
+            if tabname:
+                self.cursor.execute(f'SELECT DISTINCT engine FROM "{tabname}" '
+                                        f'WHERE year = \'{year}\'')
+                result = self._get_result_from_cursor()
+                self.disconnect()
+                return result
+            else:
+                return False
+        except:
+            dblog.dbtools_logger.error(f'Engines getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_engines() was executed with args: \n'
+                                       f'brandname = {brandname}\n'
+                                       f'modelname = {modelname}\n'
+                                       f'year = {year}')
+
+    def get_gearboxes(self, brandname, modelname, year, engine):
+        try:
+            self.connect()
+            tabname = self._get_tabname({'brand': brandname, 'model': modelname})
+            if tabname:
+                self.cursor.execute(f'SELECT DISTINCT engine FROM "{tabname}" '
+                                        f'WHERE year = \'{year}\' '
+                                        f'AND engine = \'{engine}\'')
+                result = self._get_result_from_cursor()
+                self.disconnect()
+                return result
+            else:
+                return False
+        except:
+            dblog.dbtools_logger.error(f'Gearboxes getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_gearboxes() was executed with args: \n'
+                                       f'brandname = {brandname}\n'
+                                       f'modelname = {modelname}\n'
+                                       f'year = {year}\n'
+                                       f'engine = {engine}')
 
     def get_avg_price(self, item, count = 7):
         try:
@@ -241,6 +329,9 @@ class Data_Getter():
                 return False
         except:
             dblog.dbtools_logger.error(f'Price getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_avg_price() was executed with args: \n'
+                                       f'item = {item}\n'
+                                       f'count = {count}')
 
     def get_prices(self, item):
         try:
@@ -260,6 +351,8 @@ class Data_Getter():
                 return False
         except:
             dblog.dbtools_logger.error(f'Prices getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_prices() was executed with args: \n'
+                                       f'item = {item}')
 
     def get_points(self, item):
         try:
@@ -281,3 +374,5 @@ class Data_Getter():
             return counters
         except:
             dblog.dbtools_logger.error(f'Gist data getting failed: {sys.exc_info()[0:2]}')
+            dblog.dbtools_logger.debug(f'Data_Getter.get_points() was executed with args: \n'
+                                       f'item = {item}')

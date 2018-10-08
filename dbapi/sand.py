@@ -23,5 +23,7 @@ for brand in getter.get_brands():
 for model in getter.get_models('Volvo'):
     print(model)
 
+getter._round5_mileage({'hello': 'hello'})
+
 print(getter.get_avg_price(item))
 print(getter.get_prices(item))
