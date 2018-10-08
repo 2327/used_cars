@@ -6,54 +6,64 @@
                 <div class="card card-body">
 <br><br><br><br>
 
-
                     <h3 class="text-center mb-4">Ввод данных</h3>
 
-                    <form action="./" method="POST">
+                    <form action="" method="GET" accept-charset="utf-8">
                      <fieldset>
                        <select class="form-control input-lg" name="brand" id="brand">
-                        <option>Выберите бренд...</option>
+                        <option value="Z">Select a brand</option>
                         {% for brand in brands %}
                          <option value="{{ brand }}">{{ brand }}</option>
                         {% endfor %}
                        </select>
 
-                       <select class="form-control input-lg" name="models" id="models">
-                        {% for model in models %}
-                         <option value="{{ model }} ">{{ model }}</option>
-                        {% endfor %}
+                       <select class="form-control input-lg" name="models" id="models" disabled="true">
+                        <option>Select a model</option>
                        </select>
  
-                       <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">
-                       <input class="form-control input-lg" placeholder="Пробег" name="mileage" value="" type="text">
+                       <!-- <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">
+                       <input class="form-control input-lg" placeholder="Пробег" name="mileage" value="" type="text"> -->
                        <input class="btn btn-lg btn-primary btn-block" value="Оценить" name="submit" type="submit" />
-                     </fieldset> 
-</form>
-
+                      </fieldset>
+                     </form>
                 </div>
         </div>
 </section>
 
-                    <script src="/js/jquery.min.js"></script>
-                    <script src="/js/jquery.chained.remote.min.js"></script>
+<!--    <script src="/js/jquery.min.js"></script> -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("select#brand").change(function() {
+          if ($(this).val() == 'Z') {
+          $("select#brand")("<option>Select a brand</option>");
+          $("select#models").attr('disabled', true);
+        }
+        else {
+          var url = "/brands" + $(this).val();
+          var brand = $(this).val();
+          $.getJSON(url, function(models) {
+            var options = '<option value="Z">Select a model</option>';
+              for (var i = 0; i < models.length; i++) {
+                options += '<option value="' + models[i].pk + '">' + models[i].fields['description'] + '</option>';
+              }
+        $("select#model")(options);
+        $("select#model option:first").attr('selected', 'selected');
+        $("select#model").attr('disabled', false);
+        });
+        }
+        });
 
 
-		            <script>
-                      $("#models").remoteChained({
-                         parents : "#brand",
-                         url : "/"
-                      });
+        $("select#model").change(function(vent) {
+         if ($(this).val() == -1) {
+         return;
+        }
+        myAwesomeFunctionToCallWhenAModelIsSelected();
+         });
+        });
+        }
 
-                      $("#model").remoteChained({
-                         parents : "#series",
-                         url : "/api/models"
-                      });
-
-                      $("#engine").remoteChained({
-                         parents : "#series, #model",
-                         url : "/api/engines"
-                      });
-                    </script>
+    </script>
 
 {% endblock %}
 

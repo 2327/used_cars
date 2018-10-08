@@ -2,8 +2,9 @@
 
 from flask import   Flask, render_template, send_from_directory, \
                     redirect, request, Response, stream_with_context, \
-                    make_response, flash, url_for, send_from_directory
-import os 
+                    make_response, flash, url_for, send_from_directory, \
+                    jsonify
+import os, json
 from dbapi.dbtools import Data_Getter
 
 # api versioning
@@ -25,13 +26,6 @@ def index():
     else:
         print('GET start')
         brands = getter.get_brands()
-        #
-        #
-        # name = request.form.get('name', None)
-        # if name is None:
-        #
-        #
-        #brand = request.form['brand']
         brand = request.args.get('brand', None)
 
         if brand is None:
@@ -40,9 +34,20 @@ def index():
             print('GET model')
             models = getter.get_models(brand)
             print(models)
+            models = json.dumps(models)
+            print(models)
             return render_template('index.tmpl', brands=brands, models=models)
 
     return render_template('index.tmpl',brands=brands)
+
+
+@app.route("/brands/<string:brand>", methods=["GET", "POST"])
+def get_models(brand):
+    getter = Data_Getter()
+    models = getter.get_models(brand)
+    models = json.dumps(models)
+    return jsonify(models)
+
 
 @app.route("/search", methods=["POST"])
 @app.route("/search", methods=["POST"])
