@@ -6,6 +6,7 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+import random
 
 
 class CarsScraperSpiderMiddleware(object):
@@ -101,3 +102,15 @@ class CarsScraperDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class CustomProxyMiddleware(object):
+    # overwrite process request
+    def process_request(self, request, spider):
+
+        proxy_list = ['http://spider:Ee3ko7qu@uscar.ga:8080',
+                      'http://spider:Ee3ko7qu@94.130.12.148:38080',
+                      'http://spider:Ee3ko7qu@136.243.8.81:28080']
+
+        request.meta['proxy'] = '{proxy}'.format(proxy=random.choice(proxy_list))
+
