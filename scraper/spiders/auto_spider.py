@@ -27,17 +27,19 @@ class CarSpider(Spider):
         'https://auto.ru/'
     ]
 
+    handle_httpstatus_list = [302]
+
     def __init__(self):
 
         super().__init__()
 
         # Настройки для запуска движка браузера без открытия окна
-        self.firefox_options = Options()
-        self.firefox_options.add_argument("--headless")
+        # self.firefox_options = Options()
+        # self.firefox_options.add_argument("--headless")
 
-        # self.driver = webdriver.Firefox()
+        self.driver = webdriver.Firefox()
 
-        self.driver = webdriver.Firefox(options=self.firefox_options)
+        # self.driver = webdriver.Firefox(options=self.firefox_options)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -143,7 +145,7 @@ class CarSpider(Spider):
         # Марку и модель берем из "хлебных крошек", так как в описании автомобиля
         # они вписаны в одно поле, и разделить их сложно
         brand = response.css('.ListingCarsHead__breadcrumbs a::text').extract_first()
-        model = response.css('.ListingCarsHead__breadcrumbs a:nth-child(2)::text').extract_first()
+        model = response.css('.ListingItemTitle-module__link::text').extract_first()
 
         for offer in response.css('.ListingCars-module__list .ListingItem-module__main'):
 
@@ -153,12 +155,19 @@ class CarSpider(Spider):
             price = offer.css('div.ListingItemPrice-module__content::text').extract_first()
             year = offer.css('div.ListingItem-module__year::text').extract_first()
             kmage = offer.css('div.ListingItem-module__kmAge::text').extract_first()
+            engine = offer.css('div.ListingItemTechSummary-module__cell:first-child::text').extract_first()
+            gearbox = offer.css('div.ListingItemTechSummary-module__cell:nth-child(2)::text').extract_first()
+
+            if price.lower() == 'новый':
+                continue
 
             item['brand'] = brand
-            item['model'] = model
+            item['model'] = re.sub(f'{brand} ', '', model)
             item['year'] = year
             item['kmage'] = self.only_digit(kmage)
             item['price'] = self.only_digit(price)
+            item['engine'] = re.sub(r'\u2009|\xa0', '', engine).split('/')[0]
+            item['gearbox'] = gearbox
 
             yield item
 

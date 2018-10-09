@@ -13,6 +13,8 @@ class CarsScraperItem(scrapy.Item):
     year = scrapy.Field()
     kmage = scrapy.Field()
     price = scrapy.Field()
+    engine = scrapy.Field()
+    gearbox = scrapy.Field()
 
 
 

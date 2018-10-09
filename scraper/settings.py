@@ -14,11 +14,12 @@ BOT_NAME = 'scraper'
 # SPIDER_MODULES = ['used_cars.scraper.spiders']
 # NEWSPIDER_MODULE = 'used_cars.scraper.spiders'
 
-LOG_ENABLED = False
+LOG_ENABLED = True
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'cars_scraper (+http://www.yourdomain.com)'
+# USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -35,7 +36,7 @@ DOWNLOAD_DELAY = 3
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
