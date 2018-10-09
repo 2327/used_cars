@@ -61,9 +61,20 @@ class CarSpider(Spider):
         # получение страницы движком
         self.driver.get(response.url)
 
+        # закрытие всплывающего окна на главной странице
+        try:
+            close_dialog = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.ModalDialogCloser_color-white.ModalDialogCloser_size-s.ModalDialogCloser.PromoPopupHistory__closer"))
+            )
+            close_dialog.click()
+        except Exception as e:
+            print('+'*50, e)
+
+        time.sleep(5)
+
         # серия кликов для настройки отображения по всем регионам
         open_region_select = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".GeoSelect__title-shrinker"))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, ".GeoSelect__title-shrinker"))
         )
         open_region_select.click()
 
