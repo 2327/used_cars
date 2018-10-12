@@ -295,7 +295,7 @@ class Data_Getter():
             self.connect()
             tabname = self._get_tabname({'brand': brandname, 'model': modelname})
             if tabname:
-                self.cursor.execute(f'SELECT DISTINCT engine FROM "{tabname}" '
+                self.cursor.execute(f'SELECT DISTINCT gearbox FROM "{tabname}" '
                                         f'WHERE year = \'{year}\' '
                                         f'AND engine = \'{engine}\'')
                 result = self._get_result_from_cursor()

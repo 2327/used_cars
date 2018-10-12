@@ -41,12 +41,44 @@ def index():
     return render_template('index.tmpl',brands=brands)
 
 
-@app.route("/brands/<string:brand>", methods=["GET", "POST"])
+@app.route("/data/get_models_for/<string:brand>", methods=["GET"])
 def get_models(brand):
     getter = Data_Getter()
     models = getter.get_models(brand)
     models = json.dumps(models)
     return jsonify(models)
+
+
+@app.route("/data/get_brands", methods=["GET"])
+def get_brands():
+    getter = Data_Getter()
+    brands = getter.get_brands()
+    result = json.dumps(brands)
+    return jsonify(result)
+
+
+@app.route("/data/get_years_for/<string:brand>&<string:model>", methods=["GET"])
+def get_years(brand, model):
+    getter = Data_Getter()
+    years = getter.get_years_for_model(brand, model)
+    result = json.dumps(years)
+    return jsonify(result)
+
+
+@app.route("/data/get_engines_for/<string:brand>&<string:model>&<string:year>", methods=["GET"])
+def get_engines(brand, model, year):
+    getter = Data_Getter()
+    engines = getter.get_engines(brand, model, year)
+    result = json.dumps(engines)
+    return jsonify(result)
+
+
+@app.route("/data/get_gearboxes_for/<string:brand>&<string:model>&<string:year>&<string:engine>", methods=["GET"])
+def get_gearboxes(brand, model, year, engine):
+    getter = Data_Getter()
+    gearboxes = getter.get_gearboxes(brand, model, year, engine)
+    result = json.dumps(gearboxes)
+    return jsonify(result)
 
 
 @app.route("/search", methods=["POST"])
