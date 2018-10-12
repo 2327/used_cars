@@ -5,27 +5,65 @@
         <div class="col-md-6">
                 <div class="card card-body">
 <br><br><br><br>
+
                     <h3 class="text-center mb-4">Ввод данных</h3>
-                    <form action="/search" method="POST">
-                    <fieldset>
-                        <div class="form-group has-error">
-                            <input class="form-control input-lg" placeholder="Марка" name="brand" value="" type="text">
-                        </div>
-                        <div class="form-group has-success">
-                            <input class="form-control input-lg" placeholder="Модель" name="model" value="" type="text">
-                        </div>
-                        <div class="form-group has-success">
-                            <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control input-lg" placeholder="Пробег" name="mileage" value="" type="text">
-                        </div>
-                        <input class="btn btn-lg btn-primary btn-block" value="Оценить" type="submit">
-                    </fieldset>
-                    </form>
+
+                    <form action="" method="GET" accept-charset="utf-8">
+                     <fieldset>
+                       <select class="form-control input-lg" name="brand" id="brand">
+                        <option value="Z">Select a brand</option>
+                        {% for brand in brands %}
+                         <option value="{{ brand }}">{{ brand }}</option>
+                        {% endfor %}
+                       </select>
+
+                       <select class="form-control input-lg" name="models" id="models" disabled="true">
+                        <option>Select a model</option>
+                       </select>
+ 
+                       <!-- <input class="form-control input-lg" placeholder="Год выпуска" name="age" value="" type="text">
+                       <input class="form-control input-lg" placeholder="Пробег" name="mileage" value="" type="text"> -->
+                       <input class="btn btn-lg btn-primary btn-block" value="Оценить" name="submit" type="submit" />
+                      </fieldset>
+                     </form>
                 </div>
         </div>
-  </section>
+</section>
+
+<!--    <script src="/js/jquery.min.js"></script> -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("select#brand").change(function() {
+          if ($(this).val() == 'Z') {
+          $("select#brand")("<option>Select a brand</option>");
+          $("select#models").attr('disabled', true);
+        }
+        else {
+          var url = "/brands" + $(this).val();
+          var brand = $(this).val();
+          $.getJSON(url, function(models) {
+            var options = '<option value="Z">Select a model</option>';
+              for (var i = 0; i < models.length; i++) {
+                options += '<option value="' + models[i].pk + '">' + models[i].fields['description'] + '</option>';
+              }
+        $("select#model")(options);
+        $("select#model option:first").attr('selected', 'selected');
+        $("select#model").attr('disabled', false);
+        });
+        }
+        });
+
+
+        $("select#model").change(function(vent) {
+         if ($(this).val() == -1) {
+         return;
+        }
+        myAwesomeFunctionToCallWhenAModelIsSelected();
+         });
+        });
+        }
+
+    </script>
 
 {% endblock %}
 

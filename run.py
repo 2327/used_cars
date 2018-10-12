@@ -2,18 +2,54 @@
 
 from flask import   Flask, render_template, send_from_directory, \
                     redirect, request, Response, stream_with_context, \
-                    make_response, flash, url_for, send_from_directory
-import os 
+                    make_response, flash, url_for, send_from_directory, \
+                    jsonify
+import os, json
 from dbapi.dbtools import Data_Getter
+
+# api versioning
+#from api.v1 import api as api_v1
+#from api import common
 
 app = Flask(__name__)
 
-@app.route("/")
-@app.route("/index.html")
+
+@app.route("/", methods=["GET", "POST"])
+@app.route("/index.html", methods=["GET", "POST"])
 def index():
-    return render_template('index.tmpl')
+    getter = Data_Getter()
+
+    if request.method == 'POST':
+        print('POST start')
+        brand = request.form["brand"]
+        print(brand)
+    else:
+        print('GET start')
+        brands = getter.get_brands()
+        brand = request.args.get('brand', None)
+
+        if brand is None:
+            return render_template('index.tmpl', brands=brands)
+        else:
+            print('GET model')
+            models = getter.get_models(brand)
+            print(models)
+            models = json.dumps(models)
+            print(models)
+            return render_template('index.tmpl', brands=brands, models=models)
+
+    return render_template('index.tmpl',brands=brands)
 
 
+@app.route("/brands/<string:brand>", methods=["GET", "POST"])
+def get_models(brand):
+    getter = Data_Getter()
+    models = getter.get_models(brand)
+    models = json.dumps(models)
+    return jsonify(models)
+
+
+@app.route("/search", methods=["POST"])
 @app.route("/search", methods=["POST"])
 def search():
     getter = Data_Getter()
