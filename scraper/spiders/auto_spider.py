@@ -206,7 +206,6 @@ class CarSpider(Spider):
             print('====================================================')
             yield response.follow(next_page,
                                   callback=self.parse_model)
-                                  # meta={'proxy': '{}'.format(random.choice(self.proxy_list))})
 
 
 if __name__ == '__main__':
