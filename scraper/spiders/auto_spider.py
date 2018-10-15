@@ -1,7 +1,5 @@
 import re
 import time
-# import os, sys
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))))
 
 from scrapy.spiders import Spider
 from scrapy.selector import Selector
@@ -41,6 +39,8 @@ class CarSpider(Spider):
 
         # self.driver = webdriver.Firefox(options=self.firefox_options)
 
+        self.count_scraped = 0
+
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super(CarSpider, cls).from_crawler(crawler, *args, **kwargs)
@@ -66,7 +66,8 @@ class CarSpider(Spider):
         # закрытие всплывающего окна на главной странице
         try:
             close_dialog = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "div.ModalDialogCloser_color-white.ModalDialogCloser_size-s.ModalDialogCloser.PromoPopupHistory__closer"))
+                EC.presence_of_element_located((By.CSS_SELECTOR,
+                                                "div.ModalDialogCloser_color-white.ModalDialogCloser_size-s.ModalDialogCloser.PromoPopupHistory__closer"))
             )
             close_dialog.click()
         except Exception as e:
@@ -103,7 +104,8 @@ class CarSpider(Spider):
             for item in selector.css('.IndexMarks__marks-with-counts .IndexMarks__item'):
                 # print(item.css('a::attr(href)').extract_first(), item.css('.IndexMarks__item-name::text').extract_first())
 
-                yield response.follow(item.css('a::attr(href)').extract_first(), callback=self.parse_brand)
+                yield response.follow(item.css('a::attr(href)').extract_first(),
+                                      callback=self.parse_brand)
 
         except Exception as exc:
             print("*" * 50, exc, "*" * 50)
@@ -131,34 +133,59 @@ class CarSpider(Spider):
             selector = Selector(text=self.driver.page_source.encode('utf-8'))
 
             for item in selector.css('.ListingPopularMMM-module__item'):
-                # print(item.css('a::attr(href)').extract_first(), item.css('a::text').extract_first())
 
-                yield response.follow(item.css('a::attr(href)').extract_first(), callback=self.parse_model)
+                yield response.follow(item.css('a::attr(href)').extract_first(),
+                                      callback=self.parse_model)
+
+    def close_popup(self, response):
+        print('popup')
+        print(response.url)
+        yield response.follow(response.css('a.PageHistory__button::attr(href)').extract_first(),
+                               callback=self.parse_model,
+                               meta={'proxy': response.meta['proxy']})
 
     def parse_model(self, response):
 
         # debug
         print('#'*50, response.url)
 
+        print(response.meta['proxy'])
+
+        print(response.css('#confirm-button::text').extract_first())
+
+
+
         item = CarsScraperItem()
 
-        # Марку и модель берем из "хлебных крошек", так как в описании автомобиля
-        # они вписаны в одно поле, и разделить их сложно
+        # Марку берем из "хлебных крошек"
         brand = response.css('.ListingCarsHead__breadcrumbs a::text').extract_first()
-        model = response.css('.ListingItemTitle-module__link::text').extract_first()
+        print(brand)
+
+        if brand is None:
+
+            try:
+                popup = response.follow(response.css('a.PromoPopupHistory__body-button::attr(href)').extract_first(),
+                                            callback=self.close_popup,
+                                            meta={'proxy': response.meta['proxy']})
+                yield popup
+            except Exception as e:
+                print(e)
+
+        # print(response.text)
 
         for offer in response.css('.ListingCars-module__list .ListingItem-module__main'):
 
             # debug
             print('+')
 
+            model = offer.css('.ListingItemTitle-module__link::text').extract_first()
             price = offer.css('div.ListingItemPrice-module__content::text').extract_first()
             year = offer.css('div.ListingItem-module__year::text').extract_first()
             kmage = offer.css('div.ListingItem-module__kmAge::text').extract_first()
             engine = offer.css('div.ListingItemTechSummary-module__cell:first-child::text').extract_first()
             gearbox = offer.css('div.ListingItemTechSummary-module__cell:nth-child(2)::text').extract_first()
 
-            if price.lower() == 'новый':
+            if kmage.isalpha():
                 continue
 
             item['brand'] = brand
@@ -166,15 +193,20 @@ class CarSpider(Spider):
             item['year'] = year
             item['kmage'] = self.only_digit(kmage)
             item['price'] = self.only_digit(price)
-            item['engine'] = re.sub(r'\u2009|\xa0', '', engine).split('/')[0]
+            item['engine'] = re.sub(r'\u2009|\xa0', ' ', engine)
             item['gearbox'] = gearbox
 
+            self.count_scraped += 1
+
+            print('%'*50, self.count_scraped)
             yield item
 
         next_page = response.css('a.ListingPagination-module__next::attr(href)').extract_first()
         if next_page is not None:
             print('====================================================')
-            yield response.follow(next_page, callback=self.parse_model)
+            yield response.follow(next_page,
+                                  callback=self.parse_model)
+                                  # meta={'proxy': '{}'.format(random.choice(self.proxy_list))})
 
 
 if __name__ == '__main__':
