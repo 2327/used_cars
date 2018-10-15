@@ -15,6 +15,8 @@ command.
     Remember that values can't be empty! Then use updater.update(item) method for all your items.
     4. Finally use updater.end_update() method. This method performs sort function that sorting all new data in DB then
     closing connection to DB.
+    5. Base_Updater.clean_existing_names() method was added to provide ability to clean existing models names that was
+added manually or without using Base_Updater.
 
     To get data from DB you can use Data_Getter class. You should create the instance for use it! Data_Getter provides
 several methods to get data about used cars from DB (for example DG instance called "getter"):
@@ -42,6 +44,7 @@ import sys
 import psycopg2
 from .dbcfg import HOST, PORT, DB_NAME, USER, PASSWORD, ADMIN, ADM_PASS, ENCODING, TABLESPACE, CONNECTION_LIMIT, connect_string
 from . import dblog
+from .names_cleaner import Name_Cleaner, bad_row, replace_dict, first_words_list, last_words_list
 
 class Base_Creator():
 
@@ -112,6 +115,7 @@ class Base_Creator():
 class Base_Updater():
 
     __slots__ = ['connection', 'cursor']
+    _models_cleaner = Name_Cleaner(bad_row, replace_dict, first_words_list, last_words_list)
 
     def __init__(self):
         pass
@@ -153,6 +157,8 @@ class Base_Updater():
 
     def update(self, item):
         try:
+            if item['model']:
+                item['model'] = self._models_cleaner.treat_name(item['model'])
             self.round5_mileage(item)
             columns = ', '.join(tuple(item.keys()))
             values = '\', \''.join(tuple(item.values()))
@@ -168,6 +174,32 @@ class Base_Updater():
             self.connection.close()
         except:
             dblog.dbtools_logger.error(f'Finishing updating error: {sys.exc_info()[0:2]}')
+
+    def clean_existing_names(self): #dont working now, it needed to add checking and merging functional for tables with same names
+        try:
+            connection = psycopg2.connect(connect_string)
+            connection.autocommit = True
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM "CARS"')
+            records = cursor.fetchall()
+            for record in records:
+                print(record)
+                brandname = record[1]
+                modelname = record[2]
+                clean_model_name = self._models_cleaner.treat_name(modelname)
+                print(clean_model_name)
+                if clean_model_name != modelname:
+                    cursor.execute(f'UPDATE "CARS" SET model = \'{clean_model_name}\' '
+                                   f'WHERE brand = \'{brandname}\' AND model = \'{modelname}\'')
+                    table_name = '_'.join((brandname, modelname))
+                    new_name = '_'.join((brandname, clean_model_name))
+
+                    print(table_name, '---------', new_name)
+                    cursor.execute(f'ALTER TABLE "{table_name}" RENAME TO "{new_name}"')
+        except:
+            dblog.dbtools_logger.error(f'Names cleaning error: {sys.exc_info()[0:2]}')
+        finally:
+            connection.close()
 
 
 class Data_Getter():
