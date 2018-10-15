@@ -40,7 +40,7 @@ CREATE OR REPLACE FUNCTION sort_cars() RETURNS boolean AS $$
                         'ID serial NOT NULL,'
 						'YEAR smallint NOT NULL,'
                         'KMAGE integer NOT NULL,'
-                        'ENGINE varchar(20) NOT NULL,'
+                        'ENGINE varchar(30) NOT NULL,'
                         'GEARBOX varchar(20) NOT NULL,'
                         'AVG_PRICE integer NOT NULL,'
                         'PRICES integer[] NOT NULL,'

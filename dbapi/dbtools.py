@@ -132,7 +132,7 @@ class Base_Updater():
                                'YEAR  smallint NOT NULL,'
                                'KMAGE  integer NOT NULL,'
                                'PRICE integer NOT NULL,'
-                               'ENGINE varchar(20) NOT NULL,'
+                               'ENGINE varchar(30) NOT NULL,'
                                'GEARBOX varchar(20) NOT NULL,'
                                'CONSTRAINT CARS_DUMP_pkey PRIMARY KEY (ID));')
             self.connection = connection
