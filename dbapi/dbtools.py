@@ -162,13 +162,13 @@ class Base_Updater():
             self.round5_mileage(item)
             columns = ', '.join(tuple(item.keys()))
             values = '\', \''.join(tuple(item.values()))
-            if not self.cursor:
-                connection = psycopg2.connect(connect_string)
-                connection.autocommit = True
-                cursor = connection.cursor()
-            else:
-                cursor = self.cursor
-            cursor.execute(f'INSERT INTO "CARS_DUMP" ({columns.lower()}) VALUES (\'{values}\')')
+            # if not self.cursor:
+            #     connection = psycopg2.connect(connect_string)
+            #     connection.autocommit = True
+            #     cursor = connection.cursor()
+            # else:
+            #     cursor = self.cursor
+            self.cursor.execute(f'INSERT INTO "CARS_DUMP" ({columns.lower()}) VALUES (\'{values}\')')
         except:
             dblog.dbtools_logger.error(f'Updating error: {sys.exc_info()[0:2]}')
             dblog.dbtools_logger.debug(f'Base_Updater.update() was executed with args: \n'
