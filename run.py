@@ -14,36 +14,12 @@ from dbapi.dbtools import Data_Getter
 app = Flask(__name__)
 
 
-@app.route("/", methods=["GET", "POST"])
-@app.route("/index.html", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
+@app.route("/index.html", methods=["GET"])
 def index():
-	path = './frontend'
-	with open(f'{path}/index.html') as main_page:
+	with open('./static/index.html') as main_page:
 	    title_sheet = main_page.read()
-	title_sheet = re.sub(r'\.', path, title_sheet)
 	return title_sheet
- #   getter = Data_Getter()
-#
- #   if request.method == 'POST':
- #       print('POST start')
-  #      brand = request.form["brand"]
-   #     print(brand)
-  #  else:
-   #     print('GET start')
-    #    brands = getter.get_brands()
-     #   brand = request.args.get('brand', None)
-
-     #   if brand is None:
-    #        return render_template('index.tmpl', brands=brands)
-   #     else:
-    #        print('GET model')
-    #        models = getter.get_models(brand)
-     #       print(models)
-    #        models = json.dumps(models)
-    #        print(models)
-    #        return render_template('index.tmpl', brands=brands, models=models)
-
- #   return render_template('index.tmpl',brands=brands)
 
 
 @app.route("/data/<string:args>", methods=["GET"])
