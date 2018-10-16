@@ -4,7 +4,7 @@ from flask import   Flask, render_template, send_from_directory, \
                     redirect, request, Response, stream_with_context, \
                     make_response, flash, url_for, send_from_directory, \
                     jsonify
-import os, json
+import os, json, re
 from dbapi.dbtools import Data_Getter
 
 # api versioning
@@ -17,44 +17,34 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index.html", methods=["GET", "POST"])
 def index():
-    getter = Data_Getter()
-
-    if request.method == 'POST':
-        print('POST start')
-        brand = request.form["brand"]
-        print(brand)
-    else:
-        print('GET start')
-        brands = getter.get_brands()
-        brand = request.args.get('brand', None)
-
-        if brand is None:
-            return render_template('index.tmpl', brands=brands)
-        else:
-            print('GET model')
-            models = getter.get_models(brand)
-            print(models)
-            models = json.dumps(models)
-            print(models)
-            return render_template('index.tmpl', brands=brands, models=models)
-
-    return render_template('index.tmpl',brands=brands)
-
-
-# @app.route("/data/get_models_for/<string:brand>", methods=["GET"])
-# def get_models(brand):
-#     getter = Data_Getter()
-#     models = getter.get_models(brand)
-#     models = json.dumps(models)
-#     return jsonify(models)
+	path = './frontend'
+	with open(f'{path}/index.html') as main_page:
+	    title_sheet = main_page.read()
+	title_sheet = re.sub(r'\.', path, title_sheet)
+	return title_sheet
+ #   getter = Data_Getter()
 #
-#
-# @app.route("/data/get_brands", methods=["GET"])
-# def get_brands():
-#     getter = Data_Getter()
-#     brands = getter.get_brands()
-#     result = json.dumps(brands)
-#     return jsonify(result)
+ #   if request.method == 'POST':
+ #       print('POST start')
+  #      brand = request.form["brand"]
+   #     print(brand)
+  #  else:
+   #     print('GET start')
+    #    brands = getter.get_brands()
+     #   brand = request.args.get('brand', None)
+
+     #   if brand is None:
+    #        return render_template('index.tmpl', brands=brands)
+   #     else:
+    #        print('GET model')
+    #        models = getter.get_models(brand)
+     #       print(models)
+    #        models = json.dumps(models)
+    #        print(models)
+    #        return render_template('index.tmpl', brands=brands, models=models)
+
+ #   return render_template('index.tmpl',brands=brands)
+
 
 @app.route("/data/<string:args>", methods=["GET"])
 def data_getter(args):
@@ -71,42 +61,18 @@ def data_getter(args):
     result = method(*values_list)
     return jsonify(result)
 
-# @app.route("/data/get_years_for/<string:brand>&<string:model>", methods=["GET"])
-# def get_years(brand, model):
-#     getter = Data_Getter()
-#     years = getter.get_years_for_model(brand, model)
-#     result = json.dumps(years)
-#     return jsonify(result)
-#
-#
-# @app.route("/data/get_engines_for/<string:brand>&<string:model>&<string:year>", methods=["GET"])
-# def get_engines(brand, model, year):
-#     getter = Data_Getter()
-#     engines = getter.get_engines(brand, model, year)
-#     result = json.dumps(engines)
-#     return jsonify(result)
-#
-#
-# @app.route("/data/get_gearboxes_for/<string:brand>&<string:model>&<string:year>&<string:engine>", methods=["GET"])
-# def get_gearboxes(brand, model, year, engine):
-#     getter = Data_Getter()
-#     gearboxes = getter.get_gearboxes(brand, model, year, engine)
-#     result = json.dumps(gearboxes)
-#     return jsonify(result)
 
-
-@app.route("/search", methods=["POST"])
 @app.route("/search", methods=["POST"])
 def search():
     getter = Data_Getter()
-    brand = request.form["brand"]
-    model = request.form["model"]
-    kmage = request.form["mileage"]
-    year = request.form["age"]
-    item = {'brand': brand, 'model': model, 'year': year, 'kmage': kmage}
-    price = getter.get_price(item)
-    print(item)
-    return render_template("search.tmpl", model=item, price=price)
+    item = {'brand': '', 'model': '', 'year': '', 'kmage': '', 'engine': '', 'gearbox': ''}
+    for key in request.form.keys():
+	    if key in item.keys():
+		    item[key] = request.form[key]
+    points = getter.get_points(item)
+    description = ['avg_price', *[f'point{n}' for n in range(1, 6)]]
+    result = dict(zip(description, points))
+    return jsonify(result)
 
 
 @app.route('/<path:path>')
