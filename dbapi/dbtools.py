@@ -394,7 +394,8 @@ class Data_Getter():
 
     def get_points(self, item):
         try:
-            avg_price = self.get_avg_price(item, count=1)
+            avg_prices = self.get_avg_price(item, count=1)
+            avg_price = avg_prices[0]
             prices = self.get_prices(item)
             counters = [0 for _ in range(6)]
             counters[0] = avg_price
