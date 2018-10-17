@@ -390,7 +390,8 @@ class Data_Getter():
         except:
             dblog.dbtools_logger.error(f'Prices getting failed: {sys.exc_info()[0:2]}')
             dblog.dbtools_logger.debug(f'Data_Getter.get_prices() was executed with args: \n'
-                                       f'item = {item}')
+                                       f'item = {item}\n'
+				       f'DB query result: {result}')
 
     def get_points(self, item):
         try:
