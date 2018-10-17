@@ -413,4 +413,7 @@ class Data_Getter():
         except:
             dblog.dbtools_logger.error(f'Gist data getting failed: {sys.exc_info()[0:2]}')
             dblog.dbtools_logger.debug(f'Data_Getter.get_points() was executed with args: \n'
-                                       f'item = {item}')
+                                       f'item = {item}\n'
+                                       f'Internal queries results:\n'
+                                       f'get_avg_price() ---> {avg_price}'
+                                       f'get_prices() ---> {prices}')
