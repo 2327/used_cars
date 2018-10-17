@@ -46,7 +46,7 @@ def search():
 	    if key in item.keys():
 		    item[key] = request.form[key]
     points = getter.get_points(item)
-    return f'item: {item}\n'
+    return f'points: {points}\n'
 
 #  description = ['avg_price', *[f'point{n}' for n in range(1, 6)]]
 #  result = dict(zip(description, points))
