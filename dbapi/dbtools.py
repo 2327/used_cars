@@ -382,9 +382,9 @@ class Data_Getter():
                                         f'AND year = \'{item["year"]}\' '
                                         f'ORDER BY id DESC '
                                         f'LIMIT 1 ')
-                result = self.cursor.fetchone()[0]
+                result = self.cursor.fetchone()
                 self.disconnect()
-                return result
+                return result[0]
             else:
                 return False
         except:
@@ -396,22 +396,25 @@ class Data_Getter():
     def get_points(self, item):
         try:
             avg_prices = self.get_avg_price(item, count=1)
-            avg_price = avg_prices[0]
-            prices = self.get_prices(item)
-            counters = [0 for _ in range(6)]
-            counters[0] = avg_price
-            for price in prices:
-                if price < 0.8*avg_price:
-                    counters[1] += 1
-                elif 0.8*avg_price <= price < 0.95*avg_price:
-                    counters[2] += 1
-                elif 0.95*avg_price <= price <= 1.05*avg_price:
-                    counters[3] += 1
-                elif 1.05*avg_price < price <= 1.2*avg_price:
-                    counters[4] += 1
-                else:
-                    counters[5] += 1
-            return counters
+	    if avg_prices:
+		    avg_price = avg_prices[0]
+		    prices = self.get_prices(item)
+		    counters = [0 for _ in range(6)]
+		    counters[0] = avg_price
+		    for price in prices:
+			if price < 0.8*avg_price:
+			    counters[1] += 1
+			elif 0.8*avg_price <= price < 0.95*avg_price:
+			    counters[2] += 1
+			elif 0.95*avg_price <= price <= 1.05*avg_price:
+			    counters[3] += 1
+			elif 1.05*avg_price < price <= 1.2*avg_price:
+			    counters[4] += 1
+			else:
+			    counters[5] += 1
+		    return counters
+            else:
+		    return False
         except:
             dblog.dbtools_logger.error(f'Gist data getting failed: {sys.exc_info()[0:2]}')
             dblog.dbtools_logger.debug(f'Data_Getter.get_points() was executed with args: \n'
