@@ -43,15 +43,15 @@ def search():
     getter = Data_Getter()
     item = {'brand': '', 'model': '', 'year': '', 'kmage': '', 'engine': '', 'gearbox': ''}
     for key in request.form.keys():
-	    if key in item.keys():
-		    item[key] = request.form[key]
+	if key in item.keys():
+	    item[key] = request.form[key]
     points = getter.get_points(item)
-    price = getter.get_avg_price(item, count=1)
-    return f'price: {price}\n'
-
-#  description = ['avg_price', *[f'point{n}' for n in range(1, 6)]]
-#  result = dict(zip(description, points))
-#  return jsonify(result)
+    if points:
+        description = ['avg_price', *[f'point{n}' for n in range(1, 6)]]
+        result = dict(zip(description, points))
+        return jsonify(result)
+    else:
+        return 'No one car with requested parameters was found in database!'
 
     
 @app.route('/<path:path>')
