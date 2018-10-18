@@ -31,13 +31,13 @@ class CarSpider(Spider):
 
         super().__init__()
 
-        # Настройки для запуска движка браузера без открытия окна
+        # Настройки для запуска движка браузера без открытия окна раскомментировать
         # self.firefox_options = Options()
         # self.firefox_options.add_argument("--headless")
-
-        self.driver = webdriver.Firefox()
-
         # self.driver = webdriver.Firefox(options=self.firefox_options)
+
+        # Настройки для запуска движка браузера без открытия окна закомментировать
+        self.driver = webdriver.Firefox()
 
         self.count_scraped = 0
 
@@ -113,7 +113,7 @@ class CarSpider(Spider):
     def parse_brand(self, response):
 
         # debug
-        print('='*50, response.url)
+        print('Brand URL: ', response.url)
 
         self.driver.get(response.url)
 
@@ -147,18 +147,15 @@ class CarSpider(Spider):
     def parse_model(self, response):
 
         # debug
-        print('#'*50, response.url)
+        print('Parsing URL: ', response.url)
 
-        print(response.meta['proxy'])
-
-        print(response.css('#confirm-button::text').extract_first())
-
-
+        print('Using proxy: ', response.meta['proxy'])
 
         item = CarsScraperItem()
 
         # Марку берем из "хлебных крошек"
         brand = response.css('.ListingCarsHead__breadcrumbs a::text').extract_first()
+
         print(brand)
 
         if brand is None:
@@ -171,12 +168,7 @@ class CarSpider(Spider):
             except Exception as e:
                 print(e)
 
-        # print(response.text)
-
         for offer in response.css('.ListingCars-module__list .ListingItem-module__main'):
-
-            # debug
-            print('+')
 
             model = offer.css('.ListingItemTitle-module__link::text').extract_first()
             price = offer.css('div.ListingItemPrice-module__content::text').extract_first()
@@ -185,25 +177,37 @@ class CarSpider(Spider):
             engine = offer.css('div.ListingItemTechSummary-module__cell:first-child::text').extract_first()
             gearbox = offer.css('div.ListingItemTechSummary-module__cell:nth-child(2)::text').extract_first()
 
+            # Пропустить предложение, если вместо пробега стоит надпись "Новый"
             if kmage.isalpha():
                 continue
 
             item['brand'] = brand
+
             item['model'] = re.sub(f'{brand} ', '', model)
+
             item['year'] = year
-            item['kmage'] = self.only_digit(kmage)
-            item['price'] = self.only_digit(price)
+
+            try:
+                item['kmage'] = self.only_digit(kmage)
+            except Exception:
+                continue
+
+            try:
+                item['price'] = self.only_digit(price)
+            except Exception:
+                continue
+
             item['engine'] = re.sub(r'\u2009|\xa0', ' ', engine)
+
             item['gearbox'] = gearbox
 
             self.count_scraped += 1
+            print('Собрано %d предложений' % self.count_scraped)
 
-            print('%'*50, self.count_scraped)
             yield item
 
         next_page = response.css('a.ListingPagination-module__next::attr(href)').extract_first()
         if next_page is not None:
-            print('====================================================')
             yield response.follow(next_page,
                                   callback=self.parse_model)
 
@@ -212,6 +216,7 @@ if __name__ == '__main__':
 
     settings = Settings()
 
+    # подключение настроек из settings.py
     settings.setmodule('used_cars.scraper.settings')
 
     try:

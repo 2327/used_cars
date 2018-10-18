@@ -17,7 +17,7 @@ class CarsScraperPipeline(object):
         self.updater.start_updating()
 
     def process_item(self, item, spider):
-        print(item.keys(), item.values())
+        print(item.values())
         self.updater.update(item)
         return item
 

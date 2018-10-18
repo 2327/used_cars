@@ -105,15 +105,12 @@ class CarsScraperDownloaderMiddleware(object):
 
 
 class CustomProxyMiddleware(object):
-    # overwrite process request
-    def process_request(self, request, spider):
-#
-        # proxy_list = ['http://spider:Ee3ko7qu@94.130.12.148:38080',
-        #               'http://spider:Ee3ko7qu@136.243.8.81:28080']
 
+    def process_request(self, request, spider):
+
+        # Необходимо ввести список прокси
         proxy_list_2 = ['http://spider:Ee3ko7qu@uscar.ga:8080',
-                        'https://31.40.34.21:57890',
-                        'https://91.192.173.184:8080',
-                        'https://82.147.84.78:57362']
+                        '<http[s]://[USERNAME:PASSWORD@]PROXY_IP:PROXY_PORT>']
+
         request.meta['proxy'] = '{proxy}'.format(proxy=random.choice(proxy_list_2))
 

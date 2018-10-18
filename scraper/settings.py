@@ -15,7 +15,7 @@ BOT_NAME = 'scraper'
 # NEWSPIDER_MODULE = 'used_cars.scraper.spiders'
 
 LOG_ENABLED = True
-LOG_FILE = 'spider_log.log'
+# LOG_FILE = 'spider_log.log'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
