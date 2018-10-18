@@ -108,9 +108,10 @@ class CustomProxyMiddleware(object):
 
     def process_request(self, request, spider):
 
-        # Необходимо ввести список прокси
-        proxy_list_2 = ['http://spider:Ee3ko7qu@uscar.ga:8080',
-                        '<http[s]://[USERNAME:PASSWORD@]PROXY_IP:PROXY_PORT>']
+        # Необходимо ввести список прокси в proxy_list.txt
+        # в формате <http[s]://[USERNAME:PASSWORD@]PROXY_IP:PROXY_PORT>
+        proxy_file = open('proxy_list.txt')
+        proxy_list_2 = proxy_file.readlines()
 
         request.meta['proxy'] = '{proxy}'.format(proxy=random.choice(proxy_list_2))
 

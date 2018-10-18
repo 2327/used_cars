@@ -24,12 +24,21 @@ pip install -r requirements.txt
 ./run.py
 ```
 
-Для работы парсера требуется драйвер geckodriver:
+Для работы парсера требуется браузер Firefox драйвер geckodriver:
 ```
 wget https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz
 tar -xvzf geckodriver*
 sudo chmod +x geckodriver
 sudo mv geckodriver /usr/local/bin/
+```
+
+Необходимо ввести список прокси в файл
+```
+proxy_list.txt
+```
+в формате
+```
+<http[s]://[USERNAME:PASSWORD@]PROXY_IP:PROXY_PORT>
 ```
 
 Запуск парсера:
