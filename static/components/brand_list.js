@@ -24,12 +24,23 @@ Vue.component('brand-list', {
       }
     },    
     created: function () {
+      if (DEBUG_MODE) {
+        console.log("brand-list->created->DEBUG_MODE");
+        this.brands = DEBUG_BRANDS_LIST ;
+        this.brands.sort();//сортировка брэндов
+        this.selected  = 'Select a brand...';
+        this.brands.splice(0,0,this.selected);
+        console.log(this.brands);
+        return;
+      }
+
       console.log("brand-list->created");
       var url = "https://uscar.ga/data/get_brands";
       axios
         .get(url)
         .then(response => {
           this.brands = response.data;//JSON.parse(response.data);
+          this.brands.sort();//сортировка брэндов
           this.selected  = 'Select a brand...';
           this.brands.splice(0,0,this.selected);
           console.log(this.brands);

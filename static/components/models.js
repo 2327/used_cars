@@ -1,7 +1,12 @@
 //список автомобилей заданного брэнда
 Vue.component('models-list', {
     props: {
-      selectedBrand: ''
+      selectedBrand:{//строка брэндов
+        type: String,
+          default: function(){
+          return 'Select a brand...'
+        }
+      }
     },
     data: function () {
       return {
@@ -13,7 +18,7 @@ Vue.component('models-list', {
         selectedEngine:'',//выбранный двигатель
         gearboxes:[],//типы трансмиссий
         selectedGearBox:'',//выбранная трансмиссия
-        mileage:'5000',//пробег
+        mileage:'',//пробег
         Cost:'' //цена
       }
     },
@@ -28,20 +33,38 @@ Vue.component('models-list', {
         this.selectedYear ='';//выбранный год
         this.engines=[];//типы двигателей
         this.selectedEngine='';//выбранный двигатель
-        this.gearboxe=[];//типы трансмиссий
+        this.gearboxes=[];//типы трансмиссий
         this.selectedGearBox='';//выбранная трансмиссия
-        this.mileage='5000';//пробег
+        this.mileage='';//пробег
         if (this.selectedBrand !='')
           this.getBrandModels(this.selectedBrand);
       }
     },
     methods: {
       getBrandModels: function (brand) {
+        if (DEBUG_MODE) {
+          console.log("models-list->getBrandModels->DEBUG_MODE");
+          this.models = getDebugModels (brand);
+          this.models.sort();//сортировка
+          this.model  = 'Select a model...';
+          this.models.splice(0,0,this.model);
+          console.log(this.models);
+          //почистить предыдущий выбор
+          this.years = []; //года выпуска
+          this.selectedYear ='';//выбранный год
+          this.engines=[];//типы двигателей
+          this.selectedEngine='';//выбранный двигатель
+          this.gearboxes=[];//типы трансмиссий
+          this.selectedGearBox='';//выбранная трансмиссия
+          //////////////////////////////////////////////
+          return;
+        }
           var url = "https://uscar.ga/data/get_models_for="+brand;
           axios
             .get(url)
             .then(response => {
               this.models = response.data;// JSON.parse(response.data);
+              this.models.sort();//сортировка
               this.model  = 'Select a model...';
               this.models.splice(0,0,this.model);
               console.log(this.models);
@@ -55,7 +78,21 @@ Vue.component('models-list', {
       
       //получить год выпуска модели
       getYears: function () {
-          this.years = [];//смена модели, обнуляет список лет
+        //почистить предыдущий выбор
+        this.years = []; //года выпуска
+        this.selectedYear ='';//выбранный год
+        this.engines=[];//типы двигателей
+        this.selectedEngine='';//выбранный двигатель
+        this.gearboxes=[];//типы трансмиссий
+        this.selectedGearBox='';//выбранная трансмиссия
+        //////////////////////////////////////////////
+        if (DEBUG_MODE) {
+          console.log("models-list->getYears->DEBUG_MODE");
+          this.years = getDebugYears();
+          this.years.sort();//сортировка
+          console.log(this.years);
+          return;
+        }
           /* data/get_years_for/<brandname>&<modelname> */
           console.log('model-list->getYears:', this.model);
           var url = "https://uscar.ga/data/get_years_for="+
@@ -65,6 +102,7 @@ Vue.component('models-list', {
             .get(url)
             .then(response => {
               this.years = response.data;//JSON.parse(response.data);
+              this.years.sort();//сортировка
               console.log('model-list->getYears:', this.model,'->', this.years);
             })
             .catch(error => {
@@ -74,8 +112,21 @@ Vue.component('models-list', {
         },
       //событие "выбран год выпуска модели"
       onSelectYear:function(value){
-        console.log('model-list->onSelectYear:', value);
         this.selectedYear = value;
+         //почистить предыдущий выбор
+        this.engines=[];//типы двигателей
+        this.selectedEngine='';//выбранный двигатель
+        this.gearboxes=[];//типы трансмиссий
+        this.selectedGearBox='';//выбранная трансмиссия
+        //////////////////////////////////////////////
+        if (DEBUG_MODE) {
+          console.log("models-list->onSelectYear->DEBUG_MODE");
+          this.engines = getDebugEngines();
+          this.engines.sort();//сортировка
+          console.log(this.engines);
+          return;
+        }
+        console.log('model-list->onSelectYear:', value);
         //узнать доступные для брэнда/модели/года - доступные движки
         // /data/get_engines_for/<brandname>&<modelname>&<year>
         var url = "https://uscar.ga/data/get_engines_for="+
@@ -86,6 +137,7 @@ Vue.component('models-list', {
             .get(url)
             .then(response => {
               this.engines = response.data;//JSON.parse(response.data);
+              this.engines.sort();//сортировка
               console.log('model-list->getSelectYears:', this.model,'->', this.engines);
             })
             .catch(error => {
@@ -97,6 +149,16 @@ Vue.component('models-list', {
       onSelectEngine:function(value){
         console.log('model-list->onSelectEngine:', value);
         this.selectedEngine = value;
+         //почистить предыдущий выбор
+         this.gearboxes=[];//типы трансмиссий
+         //this.selectedGearBox='';//выбранная трансмиссия
+        if (DEBUG_MODE) {
+          console.log("models-list->onSelectEngine->DEBUG_MODE");
+          this.gearboxes = getDebugGearBoxes();
+          this.gearboxes.sort();//сортировка
+          console.log(this.gearboxes);
+          return;
+        }
         //узнать доступные для брэнда/модели/года/двигателя - доступные трансмиссии
         // /data/get_gearboxes_for/<brandname>&<modelname>&<year>&<engine>
         var url = "https://uscar.ga/data/get_gearboxes_for="+
@@ -108,6 +170,7 @@ Vue.component('models-list', {
             .get(url)
             .then(response => {
               this.gearboxes = response.data;//JSON.parse(response.data);
+              this.gearboxes.sort();//сортировка
               console.log('model-list->getSelectYears:', this.model,'->', this.gearboxes);
             })
             .catch(error => {
@@ -122,6 +185,12 @@ Vue.component('models-list', {
       },
       //отправка POST запроса на сервер и получение от него цены и JSON
       getPrice:function(){
+        if (DEBUG_MODE) {
+          console.log("models-list->getPrice->DEBUG_MODE");
+          this.Cost = getDebugPrice();
+          console.log(this.Cost);
+          return;
+        }
         //brand=Brilliance&model=M2 (BS4) I&year=2009&kmage=1000&engine=1.8 л&gearbox=механика
         var s = 'brand='+(this.selectedBrand)+'&'+
                   'model='+(this.model)+'&'+
@@ -143,6 +212,7 @@ Vue.component('models-list', {
          })
          .catch (error =>{
            console.log(error);
+           this.Cost = '';
          })
       }
     },
@@ -154,10 +224,29 @@ Vue.component('models-list', {
         console.log('models-list->seen:',this.model,':',res);
         return res;  
       },
-      seenAtferYear:function (){
+      seenIfYearSelected:function (){
         var res = (this.selectedYear == '')? false: true;
-        console.log('models-list->seenAtferYear:',this.selectedYear,':',res);
+        console.log('models-list->seenIfYearSelected:',this.selectedYear,':',res);
         return res;  
+      },
+      seenIfEngineSelected:function (){
+        var res = (this.selectedEngine == '')? false: true;
+        console.log('models-list->seenIfEngineSelected:',this.selectedEngine,':',res);
+        return res;  
+      },
+      seenIfGearBoxSelected:function (){
+        var res = (this.selectedGearBox == '')? false: true;
+        console.log('models-list->seenIfGearBoxSelected:',this.selectedGearBox,':',res);
+        return res;  
+      },
+      //Изменения стилей
+      //если в цене ошибка то показываю стиль cost-error
+      isCostError: function (){
+        if (!isNumeric(this.Cost)) {
+          this.Cost = app_data_cost_error();
+          return true;
+        }
+        return false;
       }
     },
     template: `
@@ -167,6 +256,30 @@ Vue.component('models-list', {
             {{ model }}
           </option>
         </select>
+        <div v-show = "seen">
+          <year-selector    v-bind:years     = "years"     v-on:select-year   ="onSelectYear"></year-selector>
+          <div v-show = "seenIfYearSelected">
+            <engine-selector  v-bind:engines   = "engines"   v-on:select-engine ="onSelectEngine"></engine-selector>
+            <div v-show = "seenIfEngineSelected">
+              <gearbox-selector
+                v-bind:gearboxes = "gearboxes"
+                v-on:select-gearbox="onSelectGearBox">
+              </gearbox-selector>
+              <div v-show = "seenIfGearBoxSelected">
+                <hr>
+                <input type="text" v-model="mileage" placeholder="Пробег"></br>
+                <hr>
+                <button v-on:click ="getPrice">Узнать цену</button>
+                <p class="cost" v-bind:class="{ cost_error : isCostError}" >{{Cost}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  })
+  
+/*
         <div v-show = "seen">
           <year-selector    v-bind:years     = "years"     v-on:select-year   ="onSelectYear"></year-selector>
           <div v-show = "seenAtferYear">
@@ -183,18 +296,4 @@ Vue.component('models-list', {
           </div>
         </div>
       </div>
-    `
-  })
-  
-  /*
-   <span>Выбрано: {{ selectedBrand }}</span>
-
-
-        /*selectedBrand: function (newValue, oldValue) {
-        console.log(this.selected+': from '+oldValue+' to '+newValue);
-        if (newValue != '')
-          this.getBrandModels(newValue);
-        else
-          this.models = [];
-      } 
-  */
+*/
